@@ -16,8 +16,6 @@ before_script:
 
 build_image:
   stage: build
-  tags:
-    - docker
   script:
     - docker build -t $DOCKER_IMAGE_NAME .
     - docker push $DOCKER_IMAGE_NAME
