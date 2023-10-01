@@ -1,0 +1,41 @@
+services:
+  acme:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: eqe-lab/acme:latest
+    container_name: ${ACME_CONTAINER_NAME:-acme}
+    hostname: ${ACME_HOSTNAME:-acme}
+    restart: always
+    env_file:
+      - ${ACME_BASE_DIR:-./acme}/acme.env
+    environment:
+      DEBUG: false
+      DOMAINS: example.com abcd.example.com
+      ISSURE_FORCE: false
+      ISSURE_CERT: true
+      INSTALL_CERT: true
+      CA_EMAIL: ${CA_EMAIL}
+      CF_Account_ID_FILE: /run/secrets/CF_Account
+      CF_Token_FILE: /run/secrets/CF_Token
+      CF_Zone_ID_FILE: /run/secrets/CF_Zone_ID
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${ACME_BASE_DIR:-.}/conf:/acme.sh
+      - ${ACME_BASE_DIR:-.}/reloadcmd:/reload
+      - ${ACME_CERTS_DIR:-./certs}:/certs
+      - ${HOST_CERTS_DIR:-/etc/ssl/acme}:${ACME_HOST_CERTS:-/certs_on_host}
+    secrets:
+      - CF_Account
+      - CF_Token
+      - CF_Zone_ID
+
+secrets:
+  CF_Account:
+    file: ./secrets/CF_Account_ID
+  CF_Token:
+    file: ./secrets/CF_Token
+  CF_Zone_ID:
+    file: ./secrets/CF_Zone_ID
