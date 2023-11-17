@@ -31,12 +31,13 @@ if [ $INSTALL_CERT = true ] ; then
 fi
 
 
-
-echo "------------------------------INFO---------------------------"
-echo "> CF_Token: $CF_Token"
-echo "> CF_Account_ID: $CF_Account_ID"
-echo "> CF_Zone_ID: $CF_Zone_ID"
-echo "> CA_EMAIL: $CA_EMAIL"
+if [ ! -z "$DEBUG" ]; then
+    echo "=========================DEBUG=============================="
+    echo "> CF_Token: $CF_Token"
+    echo "> CF_Account_ID: $CF_Account_ID"
+    echo "> CF_Zone_ID: $CF_Zone_ID"
+    echo "> CA_EMAIL: $CA_EMAIL"
+fi
 echo "-------------------------------------------------------------"
 echo "> Start at : $(date)"
 echo "> crond -n -s -m off"
