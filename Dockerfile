@@ -6,7 +6,9 @@ RUN apk --no-cache add -f bash
 
 ENV ACME_CERTS=/certs \
     DNS_PROVIDER=dns_cf \
-    INCLUDE_WILDCARD=true
+    INCLUDE_WILDCARD=true \
+    FUNCTIONS_DIR=/functions \
+    SOURCES_FILE="/sources.sh"
 
 RUN mkdir -p $ACME_CERTS && \
     mkdir -p /reload

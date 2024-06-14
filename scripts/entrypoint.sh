@@ -18,7 +18,11 @@ if  [ -f "$CF_Zone_ID_FILE" ]; then
     export CF_Zone_ID=$(cat $CF_Zone_ID_FILE)
 fi
 
+SOURCES_FILE="/sources.sh"
 
+if [ -f "$SOURCES_FILE" ]; then
+    source $SOURCES_FILE
+fi
 
 if [ $ISSURE_CERT = true ] ; then
     echo "> Execute ISSURE_CERT"
