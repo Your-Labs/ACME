@@ -12,7 +12,7 @@ docker-acme-helper() {
 docker-action() {
   local CONTAINER_ID=$1
   local ACTION=$2
-  local DOCKER_HOST=${DOCKER_HOST:-/var/run/docker.sock}
+  local DOCKER_HOST=${DOCKER_HOST:-"/var/run/docker.sock"}
 
   if [ -z "$CONTAINER_ID" ] || [ -z "$ACTION" ]; then
     docker-acme-helper
