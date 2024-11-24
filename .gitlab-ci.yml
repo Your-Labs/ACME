@@ -6,21 +6,36 @@ services:
 variables:
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
-  DOCKER_IMAGE_NAME: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME 
+  DOCKER_IMAGE_NAME: $CI_REGISTRY_IMAGE
 
 stages:
   - build
 
 before_script:
-  - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u "$CI_REGISTRY_USER" --password-stdin
 
-build_image:
+# build for tag
+build_tag:
   stage: build
   script:
-    - docker build -t $DOCKER_IMAGE_NAME .
-    - docker push $DOCKER_IMAGE_NAME
-    - |
-      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
-        docker tag "$DOCKER_IMAGE_NAME" "$CI_REGISTRY_IMAGE:latest"
-        docker push "$CI_REGISTRY_IMAGE:latest"
-      fi
+    - docker build -t $DOCKER_IMAGE_NAME:latest -t $DOCKER_IMAGE_NAME:$CI_COMMIT_TAG .
+    - docker push $DOCKER_IMAGE_NAME:latest
+    - docker push $DOCKER_IMAGE_NAME:$CI_COMMIT_TAG
+  rules:
+    - if: $CI_COMMIT_TAG  # 仅在检测到 Tag 时运行
+      changes:
+        - scripts/**
+        - Dockerfile
+
+# build for nightly
+build_branch:
+  stage: build
+  script:
+    - VERSION="nightly"
+    - docker build -t $DOCKER_IMAGE_NAME:$VERSION .
+    - docker push $DOCKER_IMAGE_NAME:$VERSION
+  rules:
+    - if: $CI_COMMIT_BRANCH  # 仅在分支构建时运行
+      changes:
+        - scripts/**
+        - Dockerfile
