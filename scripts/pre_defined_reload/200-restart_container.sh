@@ -9,5 +9,5 @@ fi
 # Source the Docker Action Script
 source '/functions/docker-action.sh'
 
-# Execute the docker action
-docker-action "$RESTART_CONTAINER_ID" restart
+# call the docker-action function to restart the container
+docker-action $RESTART_CONTAINER_ID "restart"

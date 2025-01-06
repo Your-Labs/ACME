@@ -35,6 +35,8 @@ docker-action() {
       ;;
     esac
 
+    echo "Performing '$ACTION' action on container '$id'..."
+
     # Perform the Docker action using curl
     response=$(curl --silent --write-out "%{http_code}" --output /dev/null --unix-socket "$DOCKER_HOST" \
       -X POST "http://localhost/containers/$id/$ACTION")
