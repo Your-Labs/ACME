@@ -3,7 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: eqe-lab/acme:latest
     container_name: ${ACME_CONTAINER_NAME:-acme}
     hostname: ${ACME_HOSTNAME:-acme}
     restart: always
