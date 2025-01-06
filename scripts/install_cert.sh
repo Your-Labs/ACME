@@ -18,8 +18,7 @@ acme.sh --install-cert      $DOMAIN_ARG \
         --cert-file         $CERT_FILE \
         --ca-file           $CA_FILE \
         --key-file          $KEY_FILE \
-        --fullchain-file    $FULLCHAIN_FILE \
-        --reloadcmd         $RELOAD_SHELL
+        --fullchain-file    $FULLCHAIN_FILE
 
 # Copy the certs as domain.pem and domain.key if we neet
 COPY_AS_DOMAIN=${COPY_AS_DOMAIN:-"true"}
@@ -30,3 +29,6 @@ if [ "$COPY_AS_DOMAIN" == "true" ]; then
         cp $KEY_FILE $ACME_CERTS/$domain.key
     done
 fi
+
+# Reload the shell
+eval $RELOAD_SHELL
