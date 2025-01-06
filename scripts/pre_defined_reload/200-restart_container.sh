@@ -6,7 +6,8 @@ if [ -z "$RESTART_CONTAINER_ID" ]; then
     exit 0
 fi
 
-SOURCES_FILE=${SOURCES_FILE:-"/sources.sh"}
-source "$SOURCES_FILE"
+# Source the Docker Action Script
+source '/functions/docker-action.sh'
+
 # Execute the docker action
 docker-action "$RESTART_CONTAINER_ID" restart

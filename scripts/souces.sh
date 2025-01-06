@@ -42,6 +42,7 @@ else
     # Source all shell script files in FUNCTIONS_DIR
     for script in "$FUNCTIONS_DIR"/*.sh; do
         if [ -f "$script" ]; then
+            echo "Sourcing $FUNCTIONS_DIR/$script"
             source "$script"
         fi
     done
