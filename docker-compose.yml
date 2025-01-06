@@ -12,9 +12,12 @@ services:
     environment:
       DEBUG: false
       DOMAINS: example.com abcd.example.com
+      INCLUDE_WILDCARD: false
+      # ISSURE_SERVER: zerossl #letsencrypt
       ISSURE_FORCE: false
       ISSURE_CERT: true
       INSTALL_CERT: true
+      # RESTART_CONTAINER_ID: abc,def # restart container after renew, you can use comma to separate multiple container id
       CA_EMAIL: ${CA_EMAIL}
       CF_Account_ID_FILE: /run/secrets/CF_Account
       CF_Token_FILE: /run/secrets/CF_Token

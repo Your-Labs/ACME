@@ -1,6 +1,5 @@
-ARG BASE=neilpang/acme.sh:latest
-
-FROM $BASE
+ARG ACME_VERSION=latest
+FROM neilpang/acme.sh:${ACME_VERSION}
 
 RUN apk --no-cache add -f bash
 
@@ -10,10 +9,10 @@ ENV ACME_CERTS=/certs \
     FUNCTIONS_DIR=/functions \
     SOURCES_FILE="/sources.sh"
 
-RUN mkdir -p $ACME_CERTS && \
+RUN mkdir -p ${ACME_CERTS} && \
     mkdir -p /reload
 
-ADD scripts /
+COPY scripts /
 
 WORKDIR /reload
 ENTRYPOINT ["/entrypoint.sh"]
