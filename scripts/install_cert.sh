@@ -22,7 +22,7 @@ acme.sh --install-cert      $DOMAIN_ARG \
         --reloadcmd         $RELOAD_SHELL
 
 # Copy the certs as domain.pem and domain.key if we neet
-COPY_AS_DOMAIN=${COPY_AS_DOMAIN:-false}
+COPY_AS_DOMAIN=${COPY_AS_DOMAIN:-"true"}
 if [ "$COPY_AS_DOMAIN" == "true" ]; then
     for domain in $DOMAINS; do
         echo "Copying certificates for domain: $domain"
