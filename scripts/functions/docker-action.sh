@@ -24,16 +24,15 @@ docker-action() {
   fi
 
   # Iterate over comma-separated container IDs
-  IFS=',' read -ra CONTAINER_IDS <<< "$CONTAINER_ID"
+  IFS=',' read -ra CONTAINER_IDS <<<"$CONTAINER_ID"
   for id in "${CONTAINER_IDS[@]}"; do
     # Validate action by checking Docker API compatibility
     case "$ACTION" in
-      start|stop|restart|pause|unpause)
-        ;;
-      *)
-        echo "Error: Invalid action '$ACTION'. Supported actions are: start, stop, restart, pause, unpause."
-        return 1
-        ;;
+    start | stop | restart | pause | unpause) ;;
+    *)
+      echo "Error: Invalid action '$ACTION'. Supported actions are: start, stop, restart, pause, unpause."
+      return 1
+      ;;
     esac
 
     # Perform the Docker action using curl
