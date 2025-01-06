@@ -30,6 +30,27 @@ exec_scripts_dir() {
     echo "> finished $i scripts in $scripts_dir"
 }
 
+
+# Set ACME_CERTS if not already set
+ACME_CERTS=${ACME_CERTS:-/certs}
+FULLCHAIN_FILE=$ACME_CERTS/fullchain.pem
+KEY_FILE=$ACME_CERTS/key.pem
+CERT_FILE=$ACME_CERTS/cert.pem
+CA_FILE=$ACME_CERTS/ca.pem
+
+# Copy the certs as domain.pem and domain.key if we neet
+COPY_AS_DOMAIN=${COPY_AS_DOMAIN:-"true"}
+if [ "$COPY_AS_DOMAIN" == "true" ]; then
+    echo "-----------"
+    for domain in $DOMAINS; do
+        echo "Copying certificates for domain: $domain"
+        cp -f $FULLCHAIN_FILE $ACME_CERTS/$domain.crt
+        cp -f $KEY_FILE $ACME_CERTS/$domain.key
+    done
+    echo "-----------"
+fi
+
+
 RELOAD_SHELL_DIR=/reload
 RELOAD_SHELL_DIR_PRE=/pre_defined_reload
 
