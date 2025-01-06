@@ -14,7 +14,7 @@ RELOAD_SHELL=/after_install_cert.sh
 INCLUDE_WILDCARD=${INCLUDE_WILDCARD:-"false"}
 DOMAIN_ARG=$(/convert_to_d_args.sh $DOMAINS $INCLUDE_WILDCARD)
 
-acme.sh --install-cert      "$DOMAIN_ARG" \
+acme.sh --install-cert      $DOMAIN_ARG \
         --cert-file         "$CERT_FILE" \
         --ca-file           "$CA_FILE" \
         --key-file          "$KEY_FILE" \
