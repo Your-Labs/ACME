@@ -24,11 +24,13 @@ if [ -f "$SOURCES_FILE" ]; then
     source $SOURCES_FILE
 fi
 
+ISSURE_CERT=${ISSURE_CERT:-true}
 if [ $ISSURE_CERT = true ] ; then
     echo "> Execute ISSURE_CERT"
     /issure.sh || true
 fi
 
+INSTALL_CERT=${INSTALL_CERT:-true}
 if [ $INSTALL_CERT = true ] ; then
     echo "> Execute INSTALL_CERT"
     /install_cert.sh || true
