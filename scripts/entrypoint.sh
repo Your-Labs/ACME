@@ -24,16 +24,29 @@ if [ -f "$SOURCES_FILE" ]; then
     source $SOURCES_FILE
 fi
 
-ISSURE_CERT=${ISSURE_CERT:-true}
-if [ $ISSURE_CERT = true ] ; then
+
+# Set default values for the variables if not already set
+ISSURE_CERT="${ISSURE_CERT:-true}"
+INSTALL_CERT="${INSTALL_CERT:-true}"
+
+# Execute ISSURE_CERT logic
+if [ "$ISSURE_CERT" = "true" ] ; then
     echo "> Execute ISSURE_CERT"
-    /issure.sh || true
+    if [ -x /issure.sh ]; then
+        /issure.sh || true
+    else
+        echo "Error: /issure.sh not found or not executable" >&2
+    fi
 fi
 
-INSTALL_CERT=${INSTALL_CERT:-true}
-if [ $INSTALL_CERT = true ] ; then
+# Execute INSTALL_CERT logic
+if [ "$INSTALL_CERT" = "true" ] ; then
     echo "> Execute INSTALL_CERT"
-    /install_cert.sh || true
+    if [ -x /install_cert.sh ]; then
+        /install_cert.sh || true
+    else
+        echo "Error: /install_cert.sh not found or not executable" >&2
+    fi
 fi
 
 

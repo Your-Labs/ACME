@@ -3,12 +3,13 @@
 set -e
 
 ISSURE_DEBUG=""
-if [[ ! -z "$DEBUG" ]]; then
-    set -x
+DEBUG="${DEBUG:-false}"
+if [ "$DEBUG" = "true" ]; then
+    echo "> DEBUG is enabled"
     ISSURE_DEBUG="--debug"
 fi
 
-ISSURE_FORCE=${ISSURE_FORCE:-"false"}
+ISSURE_FORCE="${ISSURE_FORCE:-false}"
 if [ "$ISSURE_FORCE" = "true" ]; then
     FORCE="--force"
 fi
@@ -41,9 +42,8 @@ DOMAIN_ARG=$(/convert_to_d_args.sh $DOMAINS $INCLUDE_WILDCARD)
 
 acme.sh --set-default-ca --server $ISSURE_SERVER
 
-
 acme.sh --issue $DOMAIN_ARG \
-        --dns $DNS_PROVIDER \
-        $ISSURE_KEY_ARG $FORCE $ISSURE_DEBUG
+    --dns $DNS_PROVIDER \
+    $ISSURE_KEY_ARG $FORCE $ISSURE_DEBUG
 
 # acme.sh --issue -d myladder.top -d "*.myladder.top" --dns dns_cf --debug
