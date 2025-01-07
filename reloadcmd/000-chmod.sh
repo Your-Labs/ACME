@@ -1,16 +1,33 @@
 #!/usr/bin/env bash
+
 set +e
 [[ ! -z "$DEBUG" ]] && set -x
 
-# COPY_TO=/etc/ssl/certs2
-if [ -z "$ACME_HOST_CERTS" ]; then
-    COPY_TO=/certs_on_host
+ACME_CERTS=${ACME_CERTS:-"/certs"}
+
+if [ -z "$CERTS_GID" ] && [ -z "$CERTS_UID" ]; then
+    echo "CERTS_GID and CERTS_UID are not set"
+    echo "No need to change permissions"
+
 else
-    COPY_TO=$ACME_HOST_CERTS
+    if [ -z "$CERTS_GID" ]; then
+        echo "CERTS_GID is not set"
+        echo "No need to change permissions"
+        CERTS_GID=$(stat -c %g $ACME_CERTS)
+    fi
+    if [ -z "$CERTS_UID" ]; then
+        echo "CERTS_UID is not set"
+        echo "No need to change permissions"
+        CERTS_UID=$(stat -c %u $ACME_CERTS)
+    fi
+    echo "Changing permissions of "$ACME_CERTS" to $CERTS_UID:$CERTS_GID"
+    chown -R $CERTS_UID:$CERTS_GID $ACME_CERTS
 fi
 
-cp -rf $ACME_CERTS/* $COPY_TO/
-
-KEY_FILE=$ACME_CERTS/key.pem
-
-chmod 600 $KEY_FILE
+if [ -z "$CERTS_PERMISSION" ]; then
+    echo "CERTS_PERMISSION is not set"
+    echo "No need to change permissions"
+else
+    echo "Changing permissions of "$ACME_CERTS" to $CERTS_PERMISSION"
+    chmod -R $CERTS_PERMISSION $ACME_CERTS
+fi

@@ -17,6 +17,10 @@ services:
       ISSURE_CERT: true
       INSTALL_CERT: true
       # RESTART_CONTAINER_ID: abc,def # restart container after renew, you can use comma to separate multiple container id
+      # # CERTS permission
+      # CERTS_UID: 1000
+      # CERTS_GID: 1000
+      # CERTS_PERMISSION: 750
       CA_EMAIL: ${CA_EMAIL}
       CF_Account_ID_FILE: /run/secrets/CF_Account
       CF_Token_FILE: /run/secrets/CF_Token
