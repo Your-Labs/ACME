@@ -44,8 +44,8 @@ if [ "$COPY_AS_DOMAIN" == "true" ]; then
     echo "-----------"
     for domain in $DOMAINS; do
         echo "Copying certificates for domain: $domain"
-        cp -f $FULLCHAIN_FILE $ACME_CERTS/$domain.crt
-        cp -f $KEY_FILE $ACME_CERTS/$domain.key
+        cp -fp $FULLCHAIN_FILE $ACME_CERTS/$domain.crt
+        cp -fp $KEY_FILE $ACME_CERTS/$domain.key
     done
     echo "-----------"
 fi
