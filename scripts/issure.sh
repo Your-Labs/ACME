@@ -8,6 +8,7 @@ if [[ ! -z "$DEBUG" ]]; then
     ISSURE_DEBUG="--debug"
 fi
 
+ISSURE_FORCE=${ISSURE_FORCE:-"false"}
 if [ "$ISSURE_FORCE" = "true" ]; then
     FORCE="--force"
 fi
