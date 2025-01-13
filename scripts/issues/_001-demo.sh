@@ -8,7 +8,7 @@ export ACME_ISSUE_DOMAINS=
 export ACME_ISSUE_WILDCARD=false
 export ACME_ISSUE_FORCE=false
 export ACME_ISSUE_SERVER=zerossl
-export ACME_ZEROSSL_MAIL=
+export ACME_CA_MAIL=
 export ACME_ISSUE_KEY_LENGTH=ec-256
 # ---------------------------------------------------------------
 # Debug configuration

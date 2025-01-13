@@ -19,7 +19,7 @@ ACME_ISSUE_ENABLE="${ACME_ISSUE_ENABLE:-true}"                                  
 ACME_DEBUG="${ACME_DEBUG:-false}"                                                             # Enable debug mode
 ACME_ISSUE_FORCE="${ACME_ISSUE_FORCE:-false}"                                                 # Force issue the domain
 ACME_ISSUE_SERVER="${ACME_ISSUE_SERVER:-zerossl}"                                             # The issue server
-ACME_ZEROSSL_MAIL="${ACME_ZEROSSL_MAIL:-}"                                                    # The zerossl mail
+ACME_CA_MAIL="${ACME_CA_MAIL:-}"                                                    # The zerossl mail
 ACME_ISSUE_KEY_LENGTH="${ACME_ISSUE_KEY_LENGTH:-"ec-256"}"                                    # The issue key length
 ACME_DNS_PROVIDER="${ACME_DNS_PROVIDER:-"dns_cf"}"                                            # The dns provider
 ACME_ISSUE_WILDCARD="${ACME_ISSUE_WILDCARD:-false}"                                       # Include wildcard
@@ -55,7 +55,7 @@ mylog "info" "ACME_ISSUE_KEY_LENGTH: $ACME_ISSUE_KEY_LENGTH"
 mylog "info" "ACME_ISSUE_PRE_HOOK: $ACME_ISSUE_PRE_HOOK"
 mylog "info" "ACME_ISSUE_POST_HOOK: $ACME_ISSUE_POST_HOOK"
 mylog "info" "ACME_ISSUE_RENEW_HOOK: $ACME_ISSUE_RENEW_HOOK"
-mylog "info" "ACME_ZEROSSL_MAIL: $ACME_ZEROSSL_MAIL"
+mylog "info" "ACME_CA_MAIL: $ACME_CA_MAIL"
 mylog "info" "ACME_DNS_PROVIDER: $ACME_DNS_PROVIDER"
 mylog "info" "ACME_ISSUE_WILDCARD: $ACME_ISSUE_WILDCARD"
 mylog "info" "ACME_ISSUE_PRE_HOOK_DIR: $ACME_ISSUE_PRE_HOOK_DIR"
@@ -95,8 +95,9 @@ fi
 ISSUE_ARGS="--server $ACME_ISSUE_SERVER "$ISSUE_ARGS
 
 # register the account if the server is zerossl and the email is set
-if [ $ACME_ISSUE_SERVER = "zerossl" ] && [ ! -z "$ACME_ZEROSSL_MAIL" ]; then
-    acme.sh --register-account -m $ACME_ZEROSSL_MAIL --server zerossl
+if [ ! -z "$ACME_CA_MAIL" ]; then
+    mylog "info" "Register the account with with email: $ACME_CA_MAIL on server: $ACME_ISSUE_SERVER"
+    acme.sh --register-account --email $ACME_CA_MAIL --server $ACME_ISSUE_SERVER
 fi
 
 # set the issue key length, default is ec-256
