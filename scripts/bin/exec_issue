@@ -90,9 +90,9 @@ fi
 # set the issue server, default is zerossl
 if [ -z "$ACME_ISSUE_SERVER" ]; then
     mylog "info" "ACME_ISSUE_SERVER is empty, use default value: zerossl"
-    # ISSUE_ARGS="--server zerossl "$ISSUE_ARGS
-    ACME_ISSUE_SERVER="zerossl"
+    ACME_ISSUE_SERVER="zerossl"    
 fi
+ISSUE_ARGS="--server $ACME_ISSUE_SERVER "$ISSUE_ARGS
 
 # register the account if the server is zerossl and the email is set
 if [ $ACME_ISSUE_SERVER = "zerossl" ] && [ ! -z "$ACME_ZEROSSL_MAIL" ]; then
@@ -138,9 +138,6 @@ else
     fi
 fi
 
-# set the default ca
-mylog "info" "Set the default ca to: $ACME_ISSUE_SERVER"
-acme.sh --set-default-ca --server $ACME_ISSUE_SERVER
 
 mylog "info" "Issue the domain=($ISSUE_DOMAIN_ARG) with args=($ISSUE_DOMAIN_ARG)"
 acme.sh --issue $ISSUE_DOMAIN_ARG $ISSUE_ARGS --pre-hook "$HOOKS_PRE_ARGS" --post-hook "$HOOKS_POST_ARGS" --renew-hook "$HOOKS_RENEW_ARGS"
