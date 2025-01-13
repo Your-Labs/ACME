@@ -47,10 +47,10 @@ domains2args() {
 
     local args=""
     for domain in "${domains[@]}"; do
-        args="$args -d $domain"
+        args="$args --domain $domain"
         # if the last argument is "true", then add the wildcard domain
         if [ "$include_wildcard" == "true" ]; then
-            args="$args -d *.$domain"
+            args="$args --domain *.$domain"
         fi
     done
 
