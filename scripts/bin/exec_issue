@@ -96,8 +96,8 @@ ISSUE_ARGS="--server $ACME_ISSUE_SERVER "$ISSUE_ARGS
 
 # register the account if the server is zerossl and the email is set
 if [ ! -z "$ACME_CA_MAIL" ]; then
-    mylog "info" "Register the account with with email: $ACME_CA_MAIL on server: $ACME_ISSUE_SERVER"
-    acme.sh --register-account --email $ACME_CA_MAIL --server $ACME_ISSUE_SERVER
+    message="Register the account with with email: $ACME_CA_MAIL on server: $ACME_ISSUE_SERVER"
+    execute_command "acme.sh --register-account --email $ACME_CA_MAIL --server $ACME_ISSUE_SERVER" "$message" $ACME_DRY_RUN
 fi
 
 # set the issue key length, default is ec-256
@@ -140,8 +140,9 @@ else
 fi
 
 
-mylog "info" "Issue the domain=($ISSUE_DOMAIN_ARG) with args=($ISSUE_DOMAIN_ARG)"
-acme.sh --issue $ISSUE_DOMAIN_ARG $ISSUE_ARGS --pre-hook "$HOOKS_PRE_ARGS" --post-hook "$HOOKS_POST_ARGS" --renew-hook "$HOOKS_RENEW_ARGS"
+message="Issue the domain=($ISSUE_DOMAIN_ARG) with args=($ISSUE_DOMAIN_ARG)"
+cmd="acme.sh --issue $ISSUE_DOMAIN_ARG $ISSUE_ARGS --pre-hook \"$HOOKS_PRE_ARGS\" --post-hook \"$HOOKS_POST_ARGS\" --renew-hook \"$HOOKS_RENEW_ARGS\""
+execute_command "$cmd" "$message" $ACME_DRY_RUN
 mylog "split"
 
 # acme.sh --issue -d myladder.top -d "*.myladder.top" --dns dns_cf --debug
