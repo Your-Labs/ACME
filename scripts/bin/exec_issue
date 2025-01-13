@@ -139,10 +139,23 @@ else
     fi
 fi
 
+cmd=(
+  acme.sh
+  --issue
+  $ISSUE_DOMAIN_ARG
+  $ISSUE_ARGS
+  --pre-hook "$HOOKS_PRE_ARGS"
+  --post-hook "$HOOKS_POST_ARGS"
+  --renew-hook "$HOOKS_RENEW_ARGS"
+)
 
-message="Issue the domain=($ISSUE_DOMAIN_ARG) with args=($ISSUE_DOMAIN_ARG)"
-cmd="acme.sh --issue $ISSUE_DOMAIN_ARG $ISSUE_ARGS --pre-hook \"$HOOKS_PRE_ARGS\" --post-hook \"$HOOKS_POST_ARGS\" --renew-hook \"$HOOKS_RENEW_ARGS\""
-execute_command "$cmd" "$message" $ACME_DRY_RUN
+message="Issue the domain=($ISSUE_DOMAIN_ARG) with args=($ISSUE_ARGS)"
+execute_command cmd "$message" $ACME_DRY_RUN
+# if [ "$ACME_DRY_RUN" = "1" ] || [ "$ACME_DRY_RUN" = "true" ]; then
+#     mylog "info" "[Dry Run] $message: ${cmd[*]}"
+# else
+#     "${cmd[@]}"
+# fi
 mylog "split"
 
 # acme.sh --issue -d myladder.top -d "*.myladder.top" --dns dns_cf --debug
