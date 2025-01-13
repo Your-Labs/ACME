@@ -1,0 +1,149 @@
+#!/bin/bash
+# ---------------------------------------------------------------
+# Pre Configuration
+ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+SOURCE_SH="$ROOT/source.sh"
+if [ -f "$SOURCE_SH" ]; then
+    source "$SOURCE_SH"
+else
+    mylog "warn" "Unable to find $SOURCE_SH file. Ignoring source.sh."
+fi
+ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+# ---------------------------------------------------------------
+# Default environment variables
+# ------------------------------------------------------------------------------
+# Default environment variables
+ACME_DRY_RUN="${ACME_DRY_RUN:-0}"                                                             # Dry run
+ACME_ISSUE_CONFIG="${ACME_ISSUE_CONFIG:-"-"}"                                                  # The issue config
+ACME_ISSUE_ENABLE="${ACME_ISSUE_ENABLE:-true}"                                                # Enable issue
+ACME_DEBUG="${ACME_DEBUG:-false}"                                                             # Enable debug mode
+ACME_ISSUE_FORCE="${ACME_ISSUE_FORCE:-false}"                                                 # Force issue the domain
+ACME_ISSUE_SERVER="${ACME_ISSUE_SERVER:-zerossl}"                                             # The issue server
+ACME_ZEROSSL_MAIL="${ACME_ZEROSSL_MAIL:-}"                                                    # The zerossl mail
+ACME_ISSUE_KEY_LENGTH="${ACME_ISSUE_KEY_LENGTH:-"ec-256"}"                                    # The issue key length
+ACME_DNS_PROVIDER="${ACME_DNS_PROVIDER:-"dns_cf"}"                                            # The dns provider
+ACME_ISSUE_WILDCARD="${ACME_ISSUE_WILDCARD:-false}"                                       # Include wildcard
+ACME_ISSUE_POST_HOOK_DIR="${ACME_ISSUE_POST_HOOK_DIR:-""}"                                    # The issue post hook
+ACME_ISSUE_POST_HOOK_DIABLE_PRE_DEFINED="${ACME_ISSUE_POST_HOOK_DIABLE_PRE_DEFINED:-false}"   # Disable the pre-defined post hook
+ACME_ISSUE_PRE_HOOK_DIR="${ACME_ISSUE_PRE_HOOK_DIR:-""}"                                      # The issue pre hook
+ACME_ISSUE_PRE_HOOK_DIABLE_PRE_DEFINED="${ACME_ISSUE_PRE_HOOK_DIABLE_PRE_DEFINED:-false}"     # Disable the pre-defined pre hook
+ACME_ISSUE_RENEW_HOOK_DIR="${ACME_ISSUE_RENEW_HOOK_DIR:-""}"                                  # The issue renew hook
+ACME_ISSUE_RENEW_HOOK_DIABLE_PRE_DEFINED="${ACME_ISSUE_RENEW_HOOK_DIABLE_PRE_DEFINED:-false}" # Disable the pre-defined renew hook
+# ==============================================================================
+
+# If the ACME_ISSUE_ENABLE is not true, exit
+if [ "$ACME_ISSUE_ENABLE" != "true" ]; then
+    mylog "info" "ACME_ISSUE_ENABLE is not true, exit"
+    exit 0
+fi
+
+# If the ACME_ISSUE_DOMAINS is empty, exit
+if [ -z "$ACME_ISSUE_DOMAINS" ]; then
+    mylog "error" "ACME_ISSUE_DOMAINS is empty"
+    exit 1
+fi
+# ------------------------------------------------------------------------------
+# Print information
+mylog "split" "====Initialize the issue.sh===="
+mylog "info" "ACME_DRY_RUN: $ACME_DRY_RUN"
+mylog "info" "ACME_ISSUE_CONFIG: $ACME_ISSUE_CONFIG"
+mylog "info" "ACME_DEBUG: $ACME_DEBUG"
+mylog "info" "ACME_ISSUE_DOMAINS: $ACME_ISSUE_DOMAINS"
+mylog "info" "ACME_ISSUE_FORCE: $ACME_ISSUE_FORCE"
+mylog "info" "ACME_ISSUE_SERVER: $ACME_ISSUE_SERVER"
+mylog "info" "ACME_ISSUE_KEY_LENGTH: $ACME_ISSUE_KEY_LENGTH"
+mylog "info" "ACME_ISSUE_PRE_HOOK: $ACME_ISSUE_PRE_HOOK"
+mylog "info" "ACME_ISSUE_POST_HOOK: $ACME_ISSUE_POST_HOOK"
+mylog "info" "ACME_ISSUE_RENEW_HOOK: $ACME_ISSUE_RENEW_HOOK"
+mylog "info" "ACME_ZEROSSL_MAIL: $ACME_ZEROSSL_MAIL"
+mylog "info" "ACME_DNS_PROVIDER: $ACME_DNS_PROVIDER"
+mylog "info" "ACME_ISSUE_WILDCARD: $ACME_ISSUE_WILDCARD"
+mylog "info" "ACME_ISSUE_PRE_HOOK_DIR: $ACME_ISSUE_PRE_HOOK_DIR"
+mylog "info" "ACME_ISSUE_PRE_HOOK_DIABLE_PRE_DEFINED: $ACME_ISSUE_PRE_HOOK_DIABLE_PRE_DEFINED"
+mylog "info" "ACME_ISSUE_POST_HOOK_DIR: $ACME_ISSUE_POST_HOOK_DIR"
+mylog "info" "ACME_ISSUE_POST_HOOK_DIABLE_PRE_DEFINED: $ACME_ISSUE_POST_HOOK_DIABLE_PRE_DEFINED"
+mylog "info" "ACME_ISSUE_RENEW_HOOK_DIR: $ACME_ISSUE_RENEW_HOOK_DIR"
+mylog "info" "ACME_ISSUE_RENEW_HOOK_DIABLE_PRE_DEFINED: $ACME_ISSUE_RENEW_HOOK_DIABLE_PRE_DEFINED"
+mylog "split" "------------------------------------------------------------"
+# ==============================================================================
+
+DRY_RUN_ARG=""
+# Dry run args
+if [ "$ACME_DRY_RUN" = "1" ] || [ "$ACME_DRY_RUN" = "true" ]; then
+    mylog "info" "ACME_DRY_RUN is true"
+    DRY_RUN_ARG="--dry-run"
+fi
+
+# Prepare the issue args
+ISSUE_ARGS=""
+# check if we need to debug
+if [ "$ACME_DEBUG" = "true" ]; then
+    mylog "info" "ACME_DEBUG is true"
+    ISSUE_ARGS=$ISSUE_ARGS" --debug"
+fi
+
+# check if we need to force issue the domain
+if [ "$ACME_ISSUE_FORCE" = "true" ]; then
+    ISSUE_ARGS=$ISSUE_ARGS" --force"
+fi
+
+# set the issue server, default is zerossl
+if [ -z "$ACME_ISSUE_SERVER" ]; then
+    mylog "info" "ACME_ISSUE_SERVER is empty, use default value: zerossl"
+    # ISSUE_ARGS="--server zerossl "$ISSUE_ARGS
+    ACME_ISSUE_SERVER="zerossl"
+fi
+
+# register the account if the server is zerossl and the email is set
+if [ $ACME_ISSUE_SERVER = "zerossl" ] && [ ! -z "$ACME_ZEROSSL_MAIL" ]; then
+    acme.sh --register-account -m $ACME_ZEROSSL_MAIL --server zerossl
+fi
+
+# set the issue key length, default is ec-256
+if [ -z $ACME_ISSUE_KEY_LENGTH ]; then
+    mylog "info" "ACME_ISSUE_KEY_LENGTH is empty, use default value: ec-256"
+    mylog "info" "You can set ACME_ISSUE_KEY_LENGTH to change it, like: -e ACME_ISSUE_KEY_LENGTH=ec-256."
+    mylog "info" "You can chose one of: [2048, 3072, 4096, 8192 or ec-256, ec-384, ec-521]."
+    ACME_ISSUE_KEY_LENGTH="ec-256"
+fi
+ISSUE_ARGS=$ISSUE_ARGS" --keylength $ACME_ISSUE_KEY_LENGTH"
+
+# set the dns provider, default is dns_cf
+ACME_DNS_PROVIDER="${ACME_DNS_PROVIDER:-"dns_cf"}"
+ISSUE_ARGS=$ISSUE_ARGS" --dns $ACME_DNS_PROVIDER"
+
+# set the hooks args
+HOOKS_ARGS_GENERAL="$MYACME_BIN_EXEC_HOOK $DRY_RUN_ARG --config-file $ACME_ISSUE_CONFIG"
+# spre, post, renew
+HOOKS_PRE_ARGS="$HOOKS_ARGS_GENERAL --mode pre"
+HOOKS_POST_ARGS="$HOOKS_ARGS_GENERAL --mode post"
+HOOKS_RENEW_ARGS="$HOOKS_ARGS_GENERAL --mode renew"
+
+# set the domain args, include wildcard if needed
+ACME_ISSUE_WILDCARD="${ACME_ISSUE_WILDCARD:-false}"
+ISSUE_DOMAIN_ARG=$(domains2args $ACME_ISSUE_DOMAINS $ACME_ISSUE_WILDCARD)
+
+# if the dns provider is cloudflare, export the cloudflare environment variables
+if [ "$ACME_DNS_PROVIDER" = 'dns_cf' ]; then
+    mylog "info" "Export the cloudflare environment variables"
+    export_cf_env
+else
+    mylog "info" "The dns provider is not cloudflare, run the dns config shell script"
+    if [ -f "$ACME_DNS_CONFIG_SH" ]; then
+        mylog "info" "Run the dns config shell script: $ACME_DNS_CONFIG_SH"
+        source $ACME_DNS_CONFIG_SH
+    else
+        mylog "error" "The dns config shell script is not found: $ACME_DNS_CONFIG_SH"
+        exit 1
+    fi
+fi
+
+# set the default ca
+mylog "info" "Set the default ca to: $ACME_ISSUE_SERVER"
+acme.sh --set-default-ca --server $ACME_ISSUE_SERVER
+
+mylog "info" "Issue the domain=($ISSUE_DOMAIN_ARG) with args=($ISSUE_DOMAIN_ARG)"
+acme.sh --issue $ISSUE_DOMAIN_ARG $ISSUE_ARGS --pre-hook "$HOOKS_PRE_ARGS" --post-hook "$HOOKS_POST_ARGS" --renew-hook "$HOOKS_RENEW_ARGS"
+mylog "split"
+
+# acme.sh --issue -d myladder.top -d "*.myladder.top" --dns dns_cf --debug

@@ -1,0 +1,134 @@
+#!/bin/bash
+# ---------------------------------------------------------------
+# Pre Configuration
+ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+SOURCE_SH="$ROOT/source.sh"
+if [ -f "$SOURCE_SH" ]; then
+    source "$SOURCE_SH"
+else
+    mylog "warn" "Unable to find $SOURCE_SH file. Ignoring source.sh."
+fi
+ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+# ---------------------------------------------------------------
+# Check if MYACME_ISSUES_CONFIG_DIR is a valid directory
+if [ ! -d "$MYACME_ISSUES_CONFIG_DIR" ]; then
+    mylog "error" "MYACME_ISSUES_CONFIG_DIR is not a valid directory: $MYACME_ISSUES_CONFIG_DIR"
+    exit 1
+fi
+
+# Check if MYACME_BIN_EXEC_ISSUE is a valid file
+if [ ! -f "$MYACME_BIN_EXEC_ISSUE" ]; then
+    mylog "error" "MYACME_BIN_EXEC_ISSUE is not a valid file: $MYACME_BIN_EXEC_ISSUE"
+    exit 1
+fi
+# ------------------------------------------------------------------------------
+# extract the default environment variables from the environment
+# general
+ACME_ISSUE_ENABLE_DEFAULT="${ACME_ISSUE_ENABLE:-true}"
+ACME_DRY_RUN_DEFAULT="${ACME_DRY_RUN:-false}"
+ACME_DEBUG_DEFAULT="${ACME_DEBUG:-false}"
+ACME_ISSUE_FORCE_DEFAULT="${ACME_ISSUE_FORCE:-false}"
+ACME_ISSUE_SERVER_DEFAULT="${ACME_ISSUE_SERVER:-zerossl}"
+ACME_ZEROSSL_MAIL_DEFAULT="${ACME_ZEROSSL_MAIL:-}"
+ACME_ISSUE_KEY_LENGTH_DEFAULT="${ACME_ISSUE_KEY_LENGTH:-"ec-256"}"
+ACME_ISSUE_WILDCARD_DEFAULT="${ACME_ISSUE_WILDCARD:-false}"
+# DNS Config
+ACME_DNS_PROVIDER_DEFAULT="${ACME_DNS_PROVIDER:-"dns_cf"}"
+ACME_DNS_CONFIG_SH_DEFAULT="${ACME_DNS_CONFIG_SH:-}"
+CF_Account_ID_FILE_DEFAULT="${CF_Account_ID_FILE:-}"
+CF_Token_FILE_DEFAULT="${CF_Token_FILE:-}"
+CF_Zone_ID_FILE_DEFAULT="${CF_Zone_ID_FILE:-}"
+CF_Account_ID_DEFAULT="${CF_Account_ID:-}"
+CF_Token_DEFAULT="${CF_Token:-}"
+CF_Zone_ID_DEFAULT="${CF_Zone_ID:-}"
+# Permissions
+ACME_CERTS_PREMISSIONS_DEFAULT="${ACME_CERTS_PREMISSIONS:-}"
+ACME_CERTS_UID_DEFAULT="${ACME_CERTS_UID:-}"
+ACME_CERTS_GID_DEFAULT="${ACME_CERTS_GID:-}"
+# Install cert
+ACME_INSTALL_CERT_DEFAULT="${ACME_INSTALL_CERT:-true}"
+ACME_INSTALL_CERT_DIR_DEFAULT="${ACME_INSTALL_CERT_DIR:-"/certs"}"
+ACME_INSTALL_UNIT_NAME_DEFAULT="${ACME_INSTALL_UNIT_NAME:-false}"
+# hooks
+ACME_ISSUE_POST_HOOK_DIR_DEFAULT="${ACME_ISSUE_POST_HOOK_DIR:-}"
+ACME_ISSUE_POST_HOOK_DIABLE_PRE_DEFINED_DEFAULT="${ACME_ISSUE_POST_HOOK_DIABLE_PRE_DEFINED:-false}"
+ACME_ISSUE_PRE_HOOK_DIR_DEFAULT="${ACME_ISSUE_PRE_HOOK_DIR:-}"
+ACME_ISSUE_PRE_HOOK_DIABLE_PRE_DEFINED_DEFAULT="${ACME_ISSUE_PRE_HOOK_DIABLE_PRE_DEFINED:-false}"
+ACME_ISSUE_RENEW_HOOK_DIR_DEFAULT="${ACME_ISSUE_RENEW_HOOK_DIR:-}"
+ACME_ISSUE_RENEW_HOOK_DIABLE_PRE_DEFINED_DEFAULT="${ACME_ISSUE_RENEW_HOOK_DIABLE_PRE_DEFINED:-false}"
+# action to container
+ACME_CONTAINER_RESTART_DEFAULT="${ACME_CONTAINER_RESTART:-}"
+ACME_CONTAINER_NGINX_RELOAD_DEFAULT="${ACME_CONTAINER_NGINX_RELOAD:-}"
+# ==============================================================================
+# cover the default environment variables to the environment
+default2env() {
+    # general
+    export ACME_ISSUE_ENABLE="${ACME_ISSUE_ENABLE_DEFAULT}"
+    export ACME_DRY_RUN="${ACME_DRY_RUN_DEFAULT}"
+    export ACME_DEBUG="${ACME_DEBUG_DEFAULT}"
+    export ACME_ISSUE_FORCE="${ACME_ISSUE_FORCE_DEFAULT}"
+    export ACME_ISSUE_SERVER="${ACME_ISSUE_SERVER_DEFAULT}"
+    export ACME_ZEROSSL_MAIL="${ACME_ZEROSSL_MAIL_DEFAULT}"
+    export ACME_ISSUE_KEY_LENGTH="${ACME_ISSUE_KEY_LENGTH_DEFAULT}"
+    export ACME_ISSUE_WILDCARD="${ACME_ISSUE_WILDCARD_DEFAULT}"
+    # DNS Config
+    export ACME_DNS_PROVIDER="${ACME_DNS_PROVIDER_DEFAULT}"
+    export ACME_DNS_CONFIG_SH="${ACME_DNS_CONFIG_SH_DEFAULT}"
+    export CF_Account_ID_FILE="${CF_Account_ID_FILE_DEFAULT}"
+    export CF_Token_FILE="${CF_Token_FILE_DEFAULT}"
+    export CF_Zone_ID_FILE="${CF_Zone_ID_FILE_DEFAULT}"
+    export CF_Account_ID="${CF_Account_ID_DEFAULT}"
+    export CF_Token="${CF_Token_DEFAULT}"
+    export CF_Zone_ID="${CF_Zone_ID_DEFAULT}"
+    # Permissions
+    export ACME_CERTS_PREMISSIONS="${ACME_CERTS_PREMISSIONS_DEFAULT}"
+    export ACME_CERTS_UID="${ACME_CERTS_UID_DEFAULT}"
+    export ACME_CERTS_GID="${ACME_CERTS_GID_DEFAULT}"
+    # Install cert
+    export ACME_INSTALL_CERT="${ACME_INSTALL_CERT_DEFAULT}"
+    export ACME_INSTALL_CERT_DIR="${ACME_INSTALL_CERT_DIR_DEFAULT}"
+    export ACME_INSTALL_UNIT_NAME="${ACME_INSTALL_UNIT_NAME_DEFAULT}"
+    # hooks
+    export ACME_ISSUE_POST_HOOK_DIR="${ACME_ISSUE_POST_HOOK_DIR_DEFAULT}"
+    export ACME_ISSUE_POST_HOOK_DIABLE_PRE_DEFINED="${ACME_ISSUE_POST_HOOK_DIABLE_PRE_DEFINED_DEFAULT}"
+    export ACME_ISSUE_PRE_HOOK_DIR="${ACME_ISSUE_PRE_HOOK_DIR_DEFAULT}"
+    export ACME_ISSUE_PRE_HOOK_DIABLE_PRE_DEFINED="${ACME_ISSUE_PRE_HOOK_DIABLE_PRE_DEFINED_DEFAULT}"
+    export ACME_ISSUE_RENEW_HOOK_DIR="${ACME_ISSUE_RENEW_HOOK_DIR_DEFAULT}"
+    # action to container
+    export ACME_CONTAINER_RESTART="${ACME_CONTAINER_RESTART_DEFAULT}"
+    export ACME_CONTAINER_NGINX_RELOAD="${ACME_CONTAINER_NGINX_RELOAD_DEFAULT}"
+}
+
+# ------------------------------------------------------------------------------
+# Source all shell script files in MYACME_ISSUES_CONFIG_DIR
+# And execute MYACME_BIN_EXEC_ISSUE
+ALL_CONFIGS=$(ls -l $MYACME_ISSUES_CONFIG_DIR | awk '/^-.*[0-9][0-9][0-9]-.*\.sh$/ {print $NF}')
+NUM=0
+for config in ${ALL_CONFIGS[@]}; do
+    NUM=$(expr ${NUM} + 1)
+    # cover the default environment variables to the environment
+    # this is to make sure the default environment variables are always available
+    default2env
+    export ACME_ISSUE_CONFIG="$MYACME_ISSUES_CONFIG_DIR/$config"
+    mylog "info" "Sourcing $ACME_ISSUE_CONFIG"
+    export ACME_ISSUE_ENABLE=false
+    source "$ACME_ISSUE_CONFIG"
+    if [ "$ACME_ISSUE_ENABLE" != "true" ]; then
+        mylog "info" "Skipping $ACME_ISSUE_CONFIG"
+        continue
+    fi
+    source $MYACME_BIN_EXEC_ISSUE || true
+done
+
+# If no scripts found in MYACME_ISSUES_CONFIG_DIR, execute MYACME_BIN_EXEC_ISSUE directly
+# MYACME_BIN_EXEC_ISSUE will extract the environment variables from the environment
+if [ $NUM -eq 0 ]; then
+    mylog "info" "No scripts found in $MYACME_ISSUES_CONFIG_DIR"
+    mylog "info" "Executing $MYACME_BIN_EXEC_ISSUE directly"
+    export ACME_ISSUE_CONFIG="" # set it to empty, because no config file
+    source $MYACME_BIN_EXEC_ISSUE || true
+else
+    mylog "info" "Finished $NUM scripts in $MYACME_ISSUES_CONFIG_DIR"
+fi
+
+default2env

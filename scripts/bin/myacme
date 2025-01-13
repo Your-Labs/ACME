@@ -1,0 +1,54 @@
+#!/bin/bash
+# ---------------------------------------------------------------
+# Pre Configuration
+ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+SOURCE_SH="$ROOT/source.sh"
+if [ -f "$SOURCE_SH" ]; then
+    source "$SOURCE_SH"
+else
+    mylog "warn" "Unable to find $SOURCE_SH file. Ignoring source.sh."
+fi
+ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+# ---------------------------------------------------------------
+# default variable
+MYACME_PROJECT_DIR=${MYACME_PROJECT_DIR:-"/myacme"}
+MYACME_BIN_DIR=${MYACME_BIN_DIR:-"$MYACME_PROJECT_DIR/bin"}
+# ---------------------------------------------------------------
+# Function Definitions
+# ---------------------------------------------------------------
+
+# Help function
+help() {
+    echo "Usage: $0 [OPTIONS]"
+    echo "Options:"
+    echo "  -h, --help            Display this help message"
+    echo "  --issue, issue        Issue the domain"
+}
+
+# ---------------------------------------------------------------
+# Parse command-line arguments
+
+# If no arguments are provided, display help
+if [[ $# -eq 0 ]]; then
+    help
+    exit 0
+fi
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+    --issue | issue)
+        shift
+        source $MYACME_BIN_DIR/issue $@
+        exit 0
+        ;;
+    -h | --help)
+        help
+        exit 0
+        ;;
+    *)
+        mylog "error" "Unknown option: $1"
+        help
+        exit 1
+        ;;
+    esac
+done

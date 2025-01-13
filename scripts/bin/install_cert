@@ -1,0 +1,94 @@
+#!/bin/bash
+# ---------------------------------------------------------------
+# Pre Configuration
+ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+SOURCE_SH="$ROOT/source.sh"
+if [ -f "$SOURCE_SH" ]; then
+    source "$SOURCE_SH"
+else
+    mylog "warn" "Unable to find $SOURCE_SH file. Ignoring source.sh."
+fi
+ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+# ---------------------------------------------------------------
+# Default values
+CERTS_INSTALL_DIR=""
+CERTS_UNIT_NAME=""
+CONFIG_FILE=""
+# ---------------------------------------------------------------
+# Parse command-line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+    --dry-run)
+        DRY_RUN=1
+        shift
+        ;;
+    -d | --dir)
+        CERTS_INSTALL_DIR=$2
+        shift 2
+        ;;
+    -u | --unit)
+        CERTS_UNIT_NAME=true
+        shift 1
+        ;;
+    --config-file | --config | -c)
+        CONFIG_FILE=$2
+        shift 2
+        ;;
+    *)
+        mylog "error" "Unknown option: $1"
+        # help
+        exit 1
+        ;;
+    esac
+done
+# ---------------------------------------------------------------
+if [ -n "$CONFIG_FILE" ] || [ "$CONFIG_FILE" != "-" ]; then
+    if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
+    else
+        mylog "warn" "Config file $CONFIG_FILE does not exist. Ignoring the file."
+    fi
+fi
+CERTS_INSTALL_DIR=${CERTS_INSTALL_DIR:-$ACME_INSTALL_CERT_DIR}
+CERTS_UNIT_NAME=${CERTS_UNIT_NAME:-$ACME_INSTALL_CERT_DIR}
+DRY_RUN=${DRY_RUN:-$ACME_DRY_RUN}
+# ---------------------------------------------------------------
+# infomation
+mylog "split" "====== Initial Configuration for install cert ======"
+mylog "info" "Dry Run: $DRY_RUN"
+mylog "info" "Config file: $CONFIG_FILE"
+mylog "info" "Install Cert Dir: $CERTS_INSTALL_DIR"
+mylog "info" "Install Cert Unit Name: $CERTS_UNIT_NAME"
+mylog "split" "==================================="
+# ---------------------------------------------------------------
+
+# ===
+UNIT_FULLCHAIN_FILE=$CERTS_INSTALL_DIR/fullchain.pem
+UNIT_KEY_FILE=$CERTS_INSTALL_DIR/key.pem
+UNIT_CERT_FILE=$CERTS_INSTALL_DIR/cert.pem
+UNIT_CA_FILE=$CERTS_INSTALL_DIR/ca.pem
+
+mkdir -p $CERTS_DIR
+
+if [ -z "$ACME_ISSUE_DOMAINS" ]; then
+    mylog "error" "ACME_ISSUE_DOMAINS is not set. Please set the domain to issue."
+    exit 0
+fi
+
+ACME_ISSUE_WILDCARD=${ACME_ISSUE_WILDCARD:-"false"}
+ISSUE_DOMAIN_ARG=$(domains2args $ACME_ISSUE_DOMAINS $ACME_ISSUE_WILDCARD)
+
+if [ $CERTS_UNIT_NAME = 'true'] || [ $CERTS_UNIT_NAME -eq 1]; then
+    acme.sh --install-cert $ISSUE_DOMAIN_ARG \
+        --cert-file "$UNIT_FULLCHAIN_FILE" \
+        --ca-file "$UNIT_CA_FILE" \
+        --key-file "$UNIT_KEY_FILE" \
+        --fullchain-file "$UNIT_FULLCHAIN_FILE"
+fi
+
+for domain in $ACME_ISSUE_DOMAINS; do
+    mylog "info" "Installing certificate for $domain"
+    acme.sh --install-cert $ISSUE_DOMAIN_ARG \
+        --key-file "$CERTS_INSTALL_DIR/$domain.key" \
+        --fullchain-file "$CERTS_INSTALL_DIR/$domain.crt"
+done
