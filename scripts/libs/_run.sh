@@ -19,10 +19,18 @@ ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 # ---------------------------------------------------------------
 
 # Function to execute all scripts in the scripts directory
+# Usage: run_dir <scripts_dir> [use_source] [continue_on_exit] [add_permission] [dry_run]
+#   scripts_dir: The directory containing the scripts to execute
+#   use_source: Optional. 1 to use `source` to execute the script; 0 to use 'eval' (default: 1)
+#   continue_on_exit: Optional. 1 to continue executing scripts even if one fails; 0 to stop on first failure (default: 1); used for source
+#   add_permission: Optional. 1 to add executable permission to the script before executing; 0 to skip (default: 0)
+#   dry_run: Optional. 1 to enable dry-run mode; 0 to disable (default: 0)
 run_dir() {
-    local scripts_dir=${1}
-    local add_permission=${2:-0}
-    local dry_run=${3:-0}
+    local scripts_dir=${1:-$MYNODE_LIBS_DIR/scripts}
+    local use_source=${2:-1}
+    local continue_on_exit=${3:-1}
+    local add_permission=${4:-0}
+    local dry_run=${5:-0}
     local success_list=()
     local failure_list=()
 
@@ -42,26 +50,56 @@ run_dir() {
         dry_run_arg="--dry-run"
     fi
 
+    # Determine command for execution
+    local exec_cmd=""
+    if [ "$use_source" -eq 1 ]; then
+        mylog "info" "Using source to execute scripts."
+        exec_cmd="source"
+    else
+        mylog "info" "Using eval to execute scripts."
+        exec_cmd="bash"
+    fi
+
     # Execute scripts
     for script in $all_scripts; do
         local script_name=$(basename "$script")
+
+        # Add executable permission if required
         if [ "$add_permission" -eq 1 ]; then
             mylog "info" "Adding executable permission to: $script_name"
             execute_command "chmod +x $script" "Set executable permission for $script_name" "$dry_run"
         fi
-        mylog "info" "Executing: $script_name"
-        local cmd="source $script $dry_run_arg"
-        if $cmd; then
-            mylog "success" "Success: $script_name"
-            success_list+=("$script_name")
+
+        # Construct the execution command
+        local cmd="$exec_cmd $script $dry_run_arg"
+        cmd=$(trim "$cmd")" --"
+
+        # Execute script
+        mylog "info" "Executing: $cmd"
+        if [ "$use_source" -eq 1 ] && [ "$continue_on_exit" -eq 1 ]; then
+            ($cmd) || {
+                mylog "warn" "Skipped: $script_name due to exit 1"
+                failure_list+=("$script_name")
+                mylog "split"
+                continue
+            }
         else
+            $cmd
+        fi
+
+        # Check execution result
+        if [ $? -ne 0 ]; then
             mylog "error" "Failed: $script_name"
             failure_list+=("$script_name")
+        else
+            mylog "success" "Success: $script_name"
+            success_list+=("$script_name")
         fi
+
         mylog "split"
     done
 
-    # Print execution summary if not in dry-run mode
+    # Print execution summary
     mylog "split" "\n===== Execution Report ====="
     if [ ${#success_list[@]} -gt 0 ]; then
         mylog "success" "Successful executions:"
@@ -81,7 +119,6 @@ run_dir() {
         mylog "success" "No failed executions."
     fi
     mylog "split" "============================="
-
 }
 
 count_sh() {

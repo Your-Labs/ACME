@@ -21,6 +21,8 @@ MODE="" # pre, post, renew
 INSTALL_CERT=""
 INSTALL_CERT_DIR=""
 INSTALL_CERT_UNIT_NAME=""
+USE_SOURCE=1
+CONTINUE_ON_EXIT=1
 # ---------------------------------------------------------------
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -138,8 +140,8 @@ fi
 # execute the script in the given directory
 if [ "$DISABLE_PRE_DEFINED" -eq 0 ] || [ "$DISABLE_PRE_DEFINED" = "false" ]; then
     mylog "info" "[pre-defined] - "$MESSAGE
-    run_dir "$PRE_DEFINE_SH_DIR" $ADD_X_PERSSION $DRY_RUN || true
+    run_dir "$PRE_DEFINE_SH_DIR" $USE_SOURCE $CONTINUE_ON_EXIT $ADD_X_PERSSION $DRY_RUN || true
 fi
 
 mylog "info" "[custom] - "$MESSAGE
-run_dir "$RUN_SH_DIR" $ADD_X_PERSSION $DRY_RUN || true
+run_dir "$RUN_SH_DIR" $USE_SOURCE $CONTINUE_ON_EXIT $ADD_X_PERSSION $DRY_RUN || true
