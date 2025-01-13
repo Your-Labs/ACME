@@ -14,12 +14,7 @@ if [ -z "$MYACME_LIBS_DIR" ]; then
 fi
 # echo "MYACME_LIBS_DIR: $MYACME_LIBS_DIR"
 EXEC_LOG_SOURCE_SH="$MYACME_LIBS_DIR/_exec_log.sh"
-if [ -f "$EXEC_LOG_SOURCE_SH" ]; then
-  source "$EXEC_LOG_SOURCE_SH"
-else
-  echo "Warn: Unable to find $EXEC_LOG_SOURCE_SH file"
-  echo "Warn: Ignoring source.sh file"
-fi
+[[ -f "$EXEC_LOG_SOURCE_SH" ]] && source "$EXEC_LOG_SOURCE_SH"
 ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 # ---------------------------------------------------------------
 
