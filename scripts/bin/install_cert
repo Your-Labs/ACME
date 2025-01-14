@@ -46,7 +46,7 @@ if [ -n "$CONFIG_FILE" ] || [ "$CONFIG_FILE" != "-" ]; then
     fi
 fi
 CERTS_INSTALL_DIR=${CERTS_INSTALL_DIR:-$ACME_INSTALL_CERT_DIR}
-CERTS_UNIT_NAME=${CERTS_UNIT_NAME:-$ACME_INSTALL_CERT_DIR}
+CERTS_UNIT_NAME=${CERTS_UNIT_NAME:-$ACME_INSTALL_CERT_UNIT_NAME}
 DRY_RUN=${DRY_RUN:-$ACME_DRY_RUN}
 # ---------------------------------------------------------------
 # infomation
@@ -54,7 +54,7 @@ mylog "split" "====== Initial Configuration for install cert ======"
 mylog "info" "Dry Run: $DRY_RUN"
 mylog "info" "Config file: $CONFIG_FILE"
 mylog "info" "Install Cert Dir: $CERTS_INSTALL_DIR"
-mylog "info" "Install Cert Unit Name: $CERTS_UNIT_NAME"
+mylog "info" "Install Cert Unit Name: $CERTS_UNIT_NAME" "(which means install the certificate to the unit name, fullchain.pem, key.pem, cert.pem, ca.pem)"
 mylog "split" "==================================="
 # ---------------------------------------------------------------
 

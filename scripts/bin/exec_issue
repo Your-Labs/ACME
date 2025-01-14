@@ -99,7 +99,7 @@ ISSUE_ARGS="--server $ACME_ISSUE_SERVER "$ISSUE_ARGS
 # register the account if the server is zerossl and the email is set
 if [ ! -z "$ACME_CA_MAIL" ]; then
     message="Register the account with with email: $ACME_CA_MAIL on server: $ACME_ISSUE_SERVER"
-    # execute_command "acme.sh --register-account --email $ACME_CA_MAIL --server $ACME_ISSUE_SERVER $ISSUE_DEBUG_ARGS" "$message" $DRY_RUN_NUM_VALUE
+    execute_command "acme.sh --register-account --email $ACME_CA_MAIL --server $ACME_ISSUE_SERVER $ISSUE_DEBUG_ARGS" "$message" $DRY_RUN_NUM_VALUE
 fi
 
 # set the issue key length, default is ec-256

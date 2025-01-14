@@ -36,7 +36,7 @@ export ACME_CERTS_GID=
 # Install cert
 export ACME_INSTALL_CERT=true
 export ACME_INSTALL_CERT_DIR="/certs"
-export ACME_INSTALL_UNIT_NAME=false 
+export ACME_INSTALL_CERT_UNIT_NAME=false 
 # ---------------------------------------------------------------
 # hooks
 # pre-issue hook

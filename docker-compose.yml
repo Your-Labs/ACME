@@ -6,57 +6,84 @@ services:
     container_name: ${ACME_CONTAINER_NAME:-acme}
     hostname: ${ACME_HOSTNAME:-acme}
     restart: always
-    env_file:
-      - ${ACME_BASE_DIR:-./acme}/acme.env
     environment:
-      DEBUG: false
+      # DEBUG: false
       ACME_ISSUE_ENABLE: true
       ACME_ISSUE_DOMAINS: example.com abcd.example.com
       ACME_ISSUE_WILDCARD: false
       ACME_ISSUE_FORCE: false
       ACME_ISSUE_SERVER: zerossl #letsencrypt
       ACME_ISSUE_KEY_LENGTH: ec-256
+      ACME_CA_MAIL: test@example.com
       # Install cert
       ACME_INSTALL_CERT: true
-      ACME_INSTALL_UNIT_NAME: true
+      ACME_INSTALL_CERT_UNIT_NAME: true
       ACME_INSTALL_CERT_DIR: /certs
       # hooks
       # post
-      ACME_ISSUE_POST_HOOK_DIR: 
+      ACME_ISSUE_POST_HOOK_DIR:
       ACME_ISSUE_POST_HOOK_DIABLE_PRE_DEFINED: false
       # pre
-      ACME_ISSUE_PRE_HOOK_DIR: 
+      ACME_ISSUE_PRE_HOOK_DIR:
       ACME_ISSUE_PRE_HOOK_DIABLE_PRE_DEFINED: false
       # renew
-      ACME_RENEW_HOOK_DIR: 
+      ACME_RENEW_HOOK_DIR:
       ACME_RENEW_HOOK_DIABLE_PRE_DEFINED: false
       # action to container
-      ACME_CONTAINER_RESTART:  # which container_id to restart, use comma to separate multiple container_id
-      ACME_CONTAINER_RELOAD:   # which container_id of nginx to reload nginx, use comma to separate multiple container_id
-      # CERTS permission
-      ACME_CERTS_UID: 
-      ACME_CERTS_GID: 
-      ACME_CERTS_PREMISSIONS: 
-      # DNS config
-      CF_Account_ID_FILE: /run/secrets/CF_Account
-      CF_Token_FILE: /run/secrets/CF_Token
-      CF_Zone_ID_FILE: /run/secrets/CF_Zone_ID
+      ACME_CONTAINER_RESTART: # which container_id to restart, use comma to separate multiple container_id
+      ACME_CONTAINER_RELOAD:
+        # which container_id of nginx to reload nginx, use comma to separate multiple container_id
+        # CERTS permission
+
+      ACME_CERTS_UID: 0
+      ACME_CERTS_GID: 1000
+      ACME_CERTS_PREMISSIONS: 640 # DNS config
+
+      CF_Account_ID_FILE: /run/secrets/CF_Account_ID
+      # CF_Token_FILE: /run/secrets/CF_Token
+      # CF_Zone_ID_FILE: /run/secrets/CF_Zone_ID
+      DEBUG: false
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${ACME_BASE_DIR:-.}/conf:/acme.sh
-      - ${ACME_BASE_DIR:-.}/issues:/myacme/issues
+      - ${ACME_BASE_DIR:-.}/acme.sh:/acme.sh
+      # - ${ACME_BASE_DIR:-.}/issues:/myacme/issues
+      - ./scripts:/myacme
+      - ./scripts/entrypoint.sh:/entrypoint.sh
       - ${ACME_CERTS_DIR:-./certs}:/certs
     secrets:
-      - CF_Account
-      - CF_Token
-      - CF_Zone_ID
+      - CF_Account_ID
+      - KYZDT_CF_Token
+      - KYZDT_CF_Zone_ID
+      - KYZDT_DEV_CF_Token
+      - KYZDT_DEV_CF_Zone_ID
+      - KYZDT_NET_CF_Token
+      - KYZDT_NET_CF_Zone_ID
+      - KYZDT_ORG_CF_Token
+      - KYZDT_ORG_CF_Zone_ID
+      
 
 secrets:
-  CF_Account:
-    file: ./secrets/CF_Account_ID
-  CF_Token:
-    file: ./secrets/CF_Token
-  CF_Zone_ID:
-    file: ./secrets/CF_Zone_ID
+  CF_Account_ID:
+    file: /home/docker/000-proxy/secrets/CF_Account_ID
+
+  KYZDT_CF_Token:
+    file: /home/docker/000-proxy/secrets/KYZDT_CF_Token
+  KYZDT_CF_Zone_ID:
+    file: /home/docker/000-proxy/secrets/KYZDT_CF_Zone_ID
+
+  KYZDT_ORG_CF_Token:
+    file: /home/docker/000-proxy/secrets/KYZDT_ORG_CF_Token
+  KYZDT_ORG_CF_Zone_ID:
+    file: /home/docker/000-proxy/secrets/KYZDT_ORG_CF_Zone_ID
+
+  KYZDT_NET_CF_Token:
+    file: /home/docker/000-proxy/secrets/KYZDT_NET_CF_Token
+  KYZDT_NET_CF_Zone_ID:
+    file: /home/docker/000-proxy/secrets/KYZDT_NET_CF_Zone_ID
+
+  KYZDT_DEV_CF_Token:
+    file: /home/docker/000-proxy/secrets/KYZDT_DEV_CF_Token
+  KYZDT_DEV_CF_Zone_ID:
+    file: /home/docker/000-proxy/secrets/KYZDT_DEV_CF_Zone_ID

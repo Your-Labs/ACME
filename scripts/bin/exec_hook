@@ -140,6 +140,11 @@ mylog "info" "Install Cert Unit Name: $INSTALL_CERT_UNIT_NAME"
 mylog "split" "==================================="
 # ---------------------------------------------------------------
 
+if [ "$ISSUE_SUCCESS" = "false" ] && [ "$MODE" != "pre" ] && [ "$DRY_RUN" != "1" ]; then
+    mylog "warn" "Issue is not successful. Skipping the ${MODE} hook."
+    return 0
+fi
+
 # Install the cert after issue
 if [ "$INSTALL_CERT" = "1" ] || [ "$INSTALL_CERT" = "true" ]; then
     cmd="$MYACME_BIN_INSTALL_CERT --config-file $CONFIG_FILE"
@@ -158,7 +163,7 @@ fi
 mylog "split" "----------------------------------"
 
 if [ -z "$RUN_SH_DIR" ]; then
-    mylog "info" "No script directory is set. Skipping the script execution."
+    mylog "info" "No script directory for $MODE Hook. Skipping the script execution."
 else
     mylog "info" "[custom] - "$MESSAGE
     mkdir -p "$RUN_SH_DIR"
