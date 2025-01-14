@@ -130,7 +130,7 @@ count_sh() {
     fi
     # Find and count matching files
     local count
-    count=$(find "$dir" -maxdepth 1 -name "[0-9]*.sh" -type f | wc -l)
+    count=$(find "$scripts_dir" -maxdepth 1 -name "[0-9]*.sh" -type f | wc -l)
     echo $count
     return 0
 }
