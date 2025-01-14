@@ -21,6 +21,20 @@ STRING_SOURCE_SH="$MYACME_LIBS_DIR/_string.sh"
 ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 # ---------------------------------------------------------------
 
+count_sh() {
+    local scripts_dir=${1}
+    # Check if the directory exists
+    if [ ! -d "$scripts_dir" ]; then
+        echo 0
+        return 0
+    fi
+    # Find and count matching files
+    local count
+    count=$(find "$scripts_dir" -maxdepth 1 -name "[0-9]*.sh" -type f | wc -l)
+    echo $count
+    return 0
+}
+
 # Function to execute all scripts in the scripts directory
 # Usage: run_dir <scripts_dir> [use_source] [continue_on_exit] [add_permission] [dry_run]
 #   scripts_dir: The directory containing the scripts to execute
@@ -40,12 +54,26 @@ run_dir() {
     # Ensure the directory exists
     if [ ! -d "$scripts_dir" ]; then
         mylog "error" "Directory $scripts_dir does not exist."
-        exit 1
+        if [ "$dry_run" = "1" ] || [ "$continue_on_exit" = "1" ]; then
+            return 0
+        else
+            return 1
+        fi
     fi
 
     # Get all scripts with `.sh` extension
     local all_scripts
     all_scripts=$(find "$scripts_dir" -maxdepth 1 -name "[0-9]*.sh" -type f | sort)
+    local script_count
+    if [ -z "$all_scripts" ]; then
+        mylog "warn" "No scripts found in $scripts_dir. Skipping execution..."
+        return 0
+    else
+        script_count=$(echo "$all_scripts" | wc -l)
+        local script_names=$(echo "$all_scripts" | xargs -n1 basename | paste -sd ", ")
+        mylog "info" "Found $script_count scripts in $scripts_dir."
+        mylog "info" "Scripts: $script_names"
+    fi
 
     # Add Dry-Run argument if enabled
     local dry_run_arg=""
@@ -122,20 +150,6 @@ run_dir() {
         mylog "success" "No failed executions."
     fi
     mylog "split" "============================="
-}
-
-count_sh() {
-    local scripts_dir=${1}
-    # Check if the directory exists
-    if [ ! -d "$scripts_dir" ]; then
-        echo "0"
-        return 0
-    fi
-    # Find and count matching files
-    local count
-    count=$(find "$scripts_dir" -maxdepth 1 -name "[0-9]*.sh" -type f | wc -l)
-    echo $count
-    return 0
 }
 
 # ---------------------------------------------------------------
