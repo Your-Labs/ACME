@@ -55,10 +55,9 @@ mylog "info" "Dry Run: $DRY_RUN"
 mylog "info" "Config file: $CONFIG_FILE"
 mylog "info" "Install Cert Dir: $CERTS_INSTALL_DIR"
 mylog "info" "Install Cert Unit Name: $CERTS_UNIT_NAME" "(which means install the certificate to the unit name, fullchain.pem, key.pem, cert.pem, ca.pem)"
-mylog "split" "==================================="
+mylog "split" "----------------------------------------------------"
 # ---------------------------------------------------------------
 
-# ===
 UNIT_FULLCHAIN_FILE=$CERTS_INSTALL_DIR/fullchain.pem
 UNIT_KEY_FILE=$CERTS_INSTALL_DIR/key.pem
 UNIT_CERT_FILE=$CERTS_INSTALL_DIR/cert.pem
@@ -68,7 +67,8 @@ mkdir -p $CERTS_INSTALL_DIR
 
 if [ -z "$ACME_ISSUE_DOMAINS" ]; then
     mylog "error" "ACME_ISSUE_DOMAINS is not set. Please set the domain to issue."
-    exit 0
+    mylog "split"
+    return 0
 fi
 
 ACME_ISSUE_WILDCARD=${ACME_ISSUE_WILDCARD:-"false"}
@@ -88,3 +88,6 @@ for domain in $ACME_ISSUE_DOMAINS; do
         --key-file "$CERTS_INSTALL_DIR/$domain.key" \
         --fullchain-file "$CERTS_INSTALL_DIR/$domain.crt"
 done
+
+mylog "info" "Certificate installed to $CERTS_INSTALL_DIR"
+mylog "split"
