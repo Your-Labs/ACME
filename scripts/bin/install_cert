@@ -6,16 +6,89 @@ SOURCE_SH="$ROOT/source.sh"
 [[ -f "$SOURCE_SH" ]] && source "$SOURCE_SH" "--force"
 ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 # ---------------------------------------------------------------
+_exec_install_cert() {
+    local domains=$1
+    local wildcard=${2:-"false"}
+    local cert_dir=${3:-""}
+    local key_file=${4:-""}
+    local fullchain_file=${5:-""}
+    local ca_file=${6:-""}
+    local cert_file=${7:-""}
+    local message=${8:-""}
+    local dry_run=${9:-0}
+
+    local install_args=""
+    local files=""
+    local path_pre=""
+    local file_full_path=""
+
+    if [ -n "$cert_dir" ]; then
+        path_pre="$cert_dir"
+        if [ ! -d "$cert_dir" ]; then
+            message="Creating the directory: $cert_dir"
+            cmd="mkdir -p \"$cert_dir\""
+            execute_command "$cmd" "$message" $dry_run
+        fi
+        if [[ "$path_pre" != */ ]]; then
+            path_pre="$path_pre/"
+        fi
+    fi
+
+    if [ -n "$key_file" ]; then
+        file_full_path="$path_pre$key_file"
+        install_args="$install_args --key-file \"$file_full_path\""
+        files="$files $file_full_path"
+    fi
+
+    if [ -n "$cert_file" ]; then
+        file_full_path="$path_pre$cert_file"
+        install_args="$install_args --cert-file \"$file_full_path\""
+        files="$files $file_full_path"
+    fi
+
+    if [ -n "$fullchain_file" ]; then
+        file_full_path="$path_pre$fullchain_file"
+        install_args="$install_args --fullchain-file \"$file_full_path\""
+        files="$files $file_full_path"
+    fi
+
+    if [ -n "$ca_file" ]; then
+        file_full_path="$path_pre$ca_file"
+        install_args="$install_args --ca-file \"$file_full_path\""
+        files="$files $file_full_path"
+    fi
+
+    files=$(trim "$files")
+    for file in $files; do
+        if [ -f "$file" ]; then
+            message="Removing the existing certificate file: $file"
+            cmd="rm -f \"$file\""
+            execute_command "$cmd" "$message" $dry_run
+        fi
+    done
+
+    if [ -z "$message" ]; then
+        message="Installing certificate for $domains to files: $files"
+    fi
+
+    local domain_args=$(domains2args "$domains" $wildcard)
+    local cmd="acme.sh --install-cert $domain_args $install_args"
+    execute_command "$cmd" "$message" $dry_run
+}
+# ---------------------------------------------------------------
 # Default values
 CERTS_INSTALL_DIR=""
 CERTS_UNIT_NAME=""
 CONFIG_FILE=""
+RUN_POST_HOOK='0'
+DRY_RUN_ARG=''
 # ---------------------------------------------------------------
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
     --dry-run)
         DRY_RUN=1
+        DRY_RUN_ARG='--dry-run'
         shift
         ;;
     -d | --dir)
@@ -30,10 +103,14 @@ while [[ $# -gt 0 ]]; do
         CONFIG_FILE=$2
         shift 2
         ;;
+    --run-post-hook)
+        RUN_POST_HOOK='1'
+        shift
+        ;;
     *)
-        mylog "error" "Unknown option: $1"
+        mylog "error" "Unknown option: $1, ignoring the option."
+        shift
         # help
-        exit 1
         ;;
     esac
 done
@@ -48,6 +125,7 @@ fi
 CERTS_INSTALL_DIR=${CERTS_INSTALL_DIR:-$ACME_INSTALL_CERT_DIR}
 CERTS_UNIT_NAME=${CERTS_UNIT_NAME:-$ACME_INSTALL_CERT_UNIT_NAME}
 DRY_RUN=${DRY_RUN:-$ACME_DRY_RUN}
+ACME_ISSUE_WILDCARD=${ACME_ISSUE_WILDCARD:-"false"}
 # ---------------------------------------------------------------
 # infomation
 mylog "split" "====== Initial Configuration for install cert ======"
@@ -58,36 +136,46 @@ mylog "info" "Install Cert Unit Name: $CERTS_UNIT_NAME" "(which means install th
 mylog "split" "----------------------------------------------------"
 # ---------------------------------------------------------------
 
-UNIT_FULLCHAIN_FILE=$CERTS_INSTALL_DIR/fullchain.pem
-UNIT_KEY_FILE=$CERTS_INSTALL_DIR/key.pem
-UNIT_CERT_FILE=$CERTS_INSTALL_DIR/cert.pem
-UNIT_CA_FILE=$CERTS_INSTALL_DIR/ca.pem
-
-mkdir -p $CERTS_INSTALL_DIR
-
 if [ -z "$ACME_ISSUE_DOMAINS" ]; then
     mylog "error" "ACME_ISSUE_DOMAINS is not set. Please set the domain to issue."
     mylog "split"
     return 0
 fi
 
-ACME_ISSUE_WILDCARD=${ACME_ISSUE_WILDCARD:-"false"}
-ISSUE_DOMAIN_ARG=$(domains2args $ACME_ISSUE_DOMAINS $ACME_ISSUE_WILDCARD)
-
+# handle the unit name
 if [ "$CERTS_UNIT_NAME" = 'true' ] || [ "$CERTS_UNIT_NAME" = "1" ]; then
-    acme.sh --install-cert $ISSUE_DOMAIN_ARG \
-        --cert-file "$UNIT_FULLCHAIN_FILE" \
-        --ca-file "$UNIT_CA_FILE" \
-        --key-file "$UNIT_KEY_FILE" \
-        --fullchain-file "$UNIT_FULLCHAIN_FILE"
+    message="Installing certificate for $ACME_ISSUE_DOMAINS to $CERTS_INSTALL_DIR"
+    _exec_install_cert "$ACME_ISSUE_DOMAINS" "$ACME_ISSUE_WILDCARD" "$CERTS_INSTALL_DIR" "key.pem" "fullchain.pem" "ca.pem" "cert.pem" "$message" $DRY_RUN
+    # acme.sh --install-cert $ISSUE_DOMAIN_ARG \
+    #     --cert-file "$UNIT_FULLCHAIN_FILE" \
+    #     --ca-file "$UNIT_CA_FILE" \
+    #     --key-file "$UNIT_KEY_FILE" \
+    #     --fullchain-file "$UNIT_FULLCHAIN_FILE"
+    # fi
 fi
 
+# install the certificate
 for domain in $ACME_ISSUE_DOMAINS; do
-    mylog "info" "Installing certificate for $domain"
-    acme.sh --install-cert $ISSUE_DOMAIN_ARG \
-        --key-file "$CERTS_INSTALL_DIR/$domain.key" \
-        --fullchain-file "$CERTS_INSTALL_DIR/$domain.crt"
+    message="Installing certificate for $domain to $CERTS_INSTALL_DIR"
+    _exec_install_cert "$ACME_ISSUE_DOMAINS" "$ACME_ISSUE_WILDCARD" "$CERTS_INSTALL_DIR" "$domain.key" "$domain.crt" "" "" "$message" $DRY_RUN
+    # mylog "info" "Installing certificate for $domain"
+    # acme.sh --install-cert $ISSUE_DOMAIN_ARG \
+    #     --key-file "$CERTS_INSTALL_DIR/$domain.key" \
+    #     --fullchain-file "$CERTS_INSTALL_DIR/$domain.crt"
 done
+
+if [ "$RUN_POST_HOOK" = '1' ]; then 
+    caller_info=$(caller 0)
+    if [[ "$caller_info" == *"$MYACME_BIN_EXEC_HOOK"* ]]; then
+        mylog "warn" "It recursively calls the post hook. Ignoring the post hook and skipping..."
+        mylog "split"
+        return 0
+    fi
+
+    HOOKS_ARGS_GENERAL="$MYACME_BIN_EXEC_HOOK --config-file $ACME_ISSUE_CONFIG --mode post --install-cert false $DRY_RUN_ARG"
+    message="Executing post hook after installing cert. To avoid recursive install cert, the post hook will not install cert again."
+    execute_command "$HOOKS_ARGS_GENERAL" "$message" $DRY_RUN
+fi
 
 mylog "info" "Certificate installed to $CERTS_INSTALL_DIR"
 mylog "split"

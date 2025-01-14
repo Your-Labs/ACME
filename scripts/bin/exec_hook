@@ -49,7 +49,10 @@ while [[ $# -gt 0 ]]; do
         shift 2
         ;;
     --install-cert)
-        INSTALL_CERT=true
+        INSTALL_CERT=$2
+        shift 2
+        ;;
+    --install-cert-dir)
         INSTALL_CERT_DIR=$2
         shift 2
         ;;
@@ -142,7 +145,7 @@ mylog "split" "==================================="
 
 if [ "$ISSUE_SUCCESS" = "false" ] && [ "$MODE" != "pre" ] && [ "$DRY_RUN" != "1" ]; then
     mylog "warn" "Issue is not successful. Skipping the ${MODE} hook."
-    return 0
+    exit 0
 fi
 
 # Install the cert after issue

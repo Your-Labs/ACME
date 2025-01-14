@@ -21,8 +21,10 @@ MYACME_BIN_DIR=${MYACME_BIN_DIR:-"$MYACME_PROJECT_DIR/bin"}
 help() {
     echo "Usage: $0 [OPTIONS]"
     echo "Options:"
-    echo "  -h, --help            Display this help message"
-    echo "  --issue, issue        Issue the domain"
+    echo "  -h, --help                                  Display this help message"
+    echo "  --issue, issue                              Issue the domain"
+    echo "  --install-cert, install-cert                Install the certificate"
+    echo "  --install-certs-dir, install-certs-dir      Install all certificates in the directory"
 }
 
 # ---------------------------------------------------------------
@@ -39,6 +41,16 @@ while [[ $# -gt 0 ]]; do
     --issue | issue)
         shift
         source $MYACME_BIN_DIR/issue $@
+        exit 0
+        ;;
+    --install-cert | install-cert)
+        shift
+        source $MYACME_BIN_DIR/install_cert $@
+        exit 0
+        ;;
+    --install-certs-dir | install-certs-dir)
+        shift
+        source $MYACME_BIN_DIR/install_certs_dir $@
         exit 0
         ;;
     -h | --help)

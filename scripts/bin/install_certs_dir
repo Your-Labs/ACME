@@ -12,21 +12,28 @@ env2default
 # defauly values
 DRY_RUN=''
 CONFIG_DIR=''
+RUN_POST_HOOK_ARG=""
+DRY_RUN_ARG=''
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
     --dry-run)
         DRY_RUN=1
+        DRY_RUN_ARG="--dry-run"
         shift
         ;;
     --config-dir | --config | -c)
         CONFIG_DIR=$2
         shift 2
         ;;
+    --run-post-hook)
+        RUN_POST_HOOK_ARG='--run-post-hook'
+        shift
+        ;;
     *)
-        mylog "error" "Unknown option: $1"
+        mylog "error" "Unknown option: $1, ignoring the option."
         # help
-        exit 1
+        shift
         ;;
     esac
 done
@@ -39,14 +46,9 @@ if [ ! -d "$CONFIG_DIR" ]; then
     exit 1
 fi
 
-# Check if MYACME_BIN_EXEC_ISSUE is a valid file
-if [ ! -f "$MYACME_BIN_EXEC_ISSUE" ]; then
-    mylog "error" "MYACME_BIN_EXEC_ISSUE is not a valid file: $MYACME_BIN_EXEC_ISSUE"
-    exit 1
-fi
 # ------------------------------------------------------------------------------
 # Source all shell script files in CONFIG_DIR
-# And execute MYACME_BIN_EXEC_ISSUE
+# And execute MYACME_BIN_INSTALL_CERT
 ALL_CONFIGS=$(find "$CONFIG_DIR" -maxdepth 1 -name "[0-9]*.sh" -type f | sort)
 NUM=0
 for config in ${ALL_CONFIGS[@]}; do
@@ -66,18 +68,15 @@ for config in ${ALL_CONFIGS[@]}; do
         mylog "info" "Skipping $ACME_ISSUE_CONFIG"
         continue
     fi
-    source $MYACME_BIN_EXEC_ISSUE || true
+    echo "source $MYACME_BIN_INSTALL_CERT --config $ACME_ISSUE_CONFIG $DRY_RUN_ARG $RUN_POST_HOOK_ARG"
+    source $MYACME_BIN_INSTALL_CERT --config "$ACME_ISSUE_CONFIG" $DRY_RUN_ARG "$RUN_POST_HOOK_ARG" || true
 done
 
-# If no scripts found in CONFIG_DIR, execute MYACME_BIN_EXEC_ISSUE directly
-# MYACME_BIN_EXEC_ISSUE will extract the environment variables from the environment
+# If no scripts found in CONFIG_DIR, execute MYACME_BIN_INSTALL_CERT directly
+# MYACME_BIN_INSTALL_CERT will extract the environment variables from the environment
 if [ $NUM -eq 0 ]; then
-    mylog "info" "No scripts found in $CONFIG_DIR"
-    mylog "info" "Executing $MYACME_BIN_EXEC_ISSUE directly"
-    export ACME_ISSUE_CONFIG="" # set it to empty, because no config file
-    source $MYACME_BIN_EXEC_ISSUE || true
-else
-    mylog "info" "Finished $NUM scripts in $CONFIG_DIR"
+    mylog "warn" "No scripts found in $CONFIG_DIR"
+    mylog "warn" "You may need to call \"instll_cert\""
 fi
 
 default2env
