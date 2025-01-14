@@ -1,7 +1,8 @@
 ARG ACME_VERSION=latest
 FROM neilpang/acme.sh:${ACME_VERSION}
 
-RUN apk --no-cache add -f bash
+RUN apk --no-cache add bash && sed -i 's|/bin/ash|/bin/bash|' /etc/passwd
+SHELL ["/bin/bash", "-c"]
 
 COPY scripts /myacme
 

@@ -3,15 +3,9 @@
 # Pre Configuration
 ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 SOURCE_SH="$ROOT/source.sh"
-
-if [ -f "$SOURCE_SH" ]; then
-    source "$SOURCE_SH"
-else
-    mylog "warn" "Unable to find $SOURCE_SH file. Ignoring source.sh."
-fi
+[[ -f "$SOURCE_SH" ]] && source "$SOURCE_SH"
 ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 # ---------------------------------------------------------------
-MYACME_DOCKER_SOCKET=${MYACME_DOCKER_SOCKET:-"/var/run/docker.sock"}
 ACME_CONTAINER_NGINX_RELOAD=""
 ACME_DRY_RUN=${ACME_DRY_RUN:-0}
 # ---------------------------------------------------------------

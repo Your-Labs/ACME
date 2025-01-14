@@ -1,8 +1,8 @@
 #!/bin/bash
-
+force_load=${1:-0}
 # ---------------------------------------------------------------
 # check if the file is loaded(source) already
-if [ -n "$_MYACME_LIBS_DNS_LOADED" ]; then
+if [ -n "$_MYACME_LIBS_DNS_LOADED" ] && [ "$force_load" != "--force" ]; then
     return 0
 fi
 # ---------------------------------------------------------------
@@ -15,7 +15,7 @@ if [ -z "$MYACME_LIBS_DIR" ]; then
 fi
 # echo "MYACME_LIBS_DIR: $MYACME_LIBS_DIR"
 EXEC_LOG_SOURCE_SH="$MYACME_LIBS_DIR/_exec_log.sh"
-[[ -f "$EXEC_LOG_SOURCE_SH" ]] && source "$EXEC_LOG_SOURCE_SH"
+[[ -f "$EXEC_LOG_SOURCE_SH" ]] && source "$EXEC_LOG_SOURCE_SH" $force_load
 ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 # ---------------------------------------------------------------
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-
+force_load=${1-0}
 # ---------------------------------------------------------------
 # Pre Configuration
 # If the MYACME_LIBS_DIR is not set, set it
@@ -12,4 +12,7 @@ fi
 # ---------------------------------------------------------------
 # # Source the libraries
 source "$MYACME_LIBS_DIR/source.sh"
-MYACME_DOCKER_SOCKET=${MYACME_DOCKER_SOCKET:-"/var/run/docker.sock"}
+# if [ -z "$MYACME_DOCKER_SOCKET" ]; then
+#     MYACME_DOCKER_SOCKET="/var/run/docker.sock"
+#     readonly MYACME_DOCKER_SOCKET
+# fi

@@ -3,11 +3,7 @@
 # Pre Configuration
 ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 SOURCE_SH="$ROOT/source.sh"
-if [ -f "$SOURCE_SH" ]; then
-    source "$SOURCE_SH"
-else
-    mylog "warn" "Unable to find $SOURCE_SH file. Ignoring source.sh."
-fi
+[[ -f "$SOURCE_SH" ]] && source "$SOURCE_SH" "--force"
 ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 # ---------------------------------------------------------------
 # Default values
@@ -68,7 +64,7 @@ UNIT_KEY_FILE=$CERTS_INSTALL_DIR/key.pem
 UNIT_CERT_FILE=$CERTS_INSTALL_DIR/cert.pem
 UNIT_CA_FILE=$CERTS_INSTALL_DIR/ca.pem
 
-mkdir -p $CERTS_DIR
+mkdir -p $CERTS_INSTALL_DIR
 
 if [ -z "$ACME_ISSUE_DOMAINS" ]; then
     mylog "error" "ACME_ISSUE_DOMAINS is not set. Please set the domain to issue."
@@ -78,7 +74,7 @@ fi
 ACME_ISSUE_WILDCARD=${ACME_ISSUE_WILDCARD:-"false"}
 ISSUE_DOMAIN_ARG=$(domains2args $ACME_ISSUE_DOMAINS $ACME_ISSUE_WILDCARD)
 
-if [ $CERTS_UNIT_NAME = 'true'] || [ $CERTS_UNIT_NAME -eq 1]; then
+if [ "$CERTS_UNIT_NAME" = 'true' ] || [ "$CERTS_UNIT_NAME" = "1" ]; then
     acme.sh --install-cert $ISSUE_DOMAIN_ARG \
         --cert-file "$UNIT_FULLCHAIN_FILE" \
         --ca-file "$UNIT_CA_FILE" \

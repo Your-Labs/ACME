@@ -1,8 +1,8 @@
 #!/bin/bash
-
+force_load=${1:-0}
 # ---------------------------------------------------------------
 # check if the file is loaded(source) already
-if [ -n "$_MYACME_LIBS_STRING_LOADED" ]; then
+if [ -n "$_MYACME_LIBS_STRING_LOADED" ] && [ "$force_load" != "--force" ]; then
     return 0
 fi
 # ---------------------------------------------------------------
@@ -15,7 +15,7 @@ if [ -z "$MYACME_LIBS_DIR" ]; then
 fi
 # echo "MYACME_LIBS_DIR: $MYACME_LIBS_DIR"
 EXEC_LOG_SOURCE_SH="$MYACME_LIBS_DIR/_exec_log.sh"
-[[ -f "$EXEC_LOG_SOURCE_SH" ]] && source "$EXEC_LOG_SOURCE_SH"
+[[ -f "$EXEC_LOG_SOURCE_SH" ]] && source "$EXEC_LOG_SOURCE_SH" $force_load
 ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 # ---------------------------------------------------------------
 # FUNCTIONS
@@ -75,6 +75,17 @@ lines2comma() {
     # Remove trailing comma and print the result
     echo "${output%,}"
 }
+
+trim() {
+    # Trim leading and trailing whitespace from a string
+    # Usage: trim_string <string>
+    local str="$1"
+    # Bash parameter expansion to trim leading and trailing whitespace
+    str="${str#"${str%%[![:space:]]*}"}" # remove leading whitespace characters
+    str="${str%"${str##*[![:space:]]}"}" # remove trailing whitespace characters
+    echo "$str"
+}
+
 
 bool2num() {
     # Convert boolean values to numbers

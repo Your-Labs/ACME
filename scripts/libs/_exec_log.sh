@@ -1,7 +1,8 @@
 #!/bin/bash
+force_load=${1:-0}
 # ---------------------------------------------------------------
 # check if the file is loaded(source) already
-if [ -n "$_MYACME_LIBS_EXEC_LOG_LOADED" ]; then
+if [ -n "$_MYACME_LIBS_EXEC_LOG_LOADED" ] && [ "$force_load" != "--force" ]; then
   return 0
 fi
 # ---------------------------------------------------------------
@@ -37,7 +38,8 @@ DRY_RUN=0 # Default to not dry-run mode
 mylog() {
   local level=$1
   local message=${2:-"========================================="} # 默认分隔线
-  local timestamp=$(date "+%Y-%m-%d %H:%M:%S")                    # 获取当前日期时间
+  # local timestamp=$(date "+%Y-%m-%d %H:%M:%S")                    # 获取当前日期时间
+  local timestamp=$(date)                    # 获取当前日期时间
   case "$level" in
   "info") echo -e "${CYAN}[$timestamp] [INFO] $message${RESET}" ;;
   "success") echo -e "${GREEN}[$timestamp] [SUCCESS] $message${RESET}" ;;
@@ -69,13 +71,14 @@ execute_command() {
   fi
 
   # Dry-run mode
-  if [ "$dry_run" -eq 1 ]; then
+  if [ "$dry_run" = "1" ]; then
     mylog "info" "[Dry Run] $description: $cmd_string"
     return 0
   fi
 
   # Log and execute the command
   mylog "info" "$description"
+  mylog "info" "Command: $cmd_string"
   eval "$cmd_string"
 
   # Capture the return value

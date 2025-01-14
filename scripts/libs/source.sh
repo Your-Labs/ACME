@@ -1,8 +1,9 @@
 #!/bin/bash
 
+force_load=${1:-0}
 # ---------------------------------------------------------------
 # check if the file is loaded(source) already
-if [ -n "$_MYACME_LIBS_ALL_LOADED" ]; then
+if [ -n "$_MYACME_LIBS_ALL_LOADED" ] && [ "$force_load" != "--force" ]; then
     return 0
 fi
 # ---------------------------------------------------------------
@@ -24,8 +25,7 @@ fi
 # Load all the libraries which name starts with _
 for file in "$MYACME_LIBS_DIR"/_*.sh; do
     if [ -f "$file" ]; then
-        # echo "Sourcing: $file"
-        source "$file" || {
+        source "$file" $force_load || {
             echo "Failed to source $file"
             exit 1
         }

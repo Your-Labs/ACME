@@ -1,7 +1,8 @@
 #!/bin/bash
+force_load=${1:-0}
 # ---------------------------------------------------------------
 # check if the file is loaded(source) already
-if [ -n "$_MYACME_LIBS_RUN_LOADED" ]; then
+if [ -n "$_MYACME_LIBS_RUN_LOADED" ] && [ "$force_load" != "--force" ]; then
     return 0
 fi
 # ---------------------------------------------------------------
@@ -14,7 +15,9 @@ if [ -z "$MYACME_LIBS_DIR" ]; then
 fi
 # echo "MYACME_LIBS_DIR: $MYACME_LIBS_DIR"
 EXEC_LOG_SOURCE_SH="$MYACME_LIBS_DIR/_exec_log.sh"
-[[ -f "$EXEC_LOG_SOURCE_SH" ]] && source "$EXEC_LOG_SOURCE_SH"
+STRING_SOURCE_SH="$MYACME_LIBS_DIR/_string.sh"
+[[ -f "$EXEC_LOG_SOURCE_SH" ]] && source "$EXEC_LOG_SOURCE_SH" $force_load
+[[ -f "$STRING_SOURCE_SH" ]] && source "$STRING_SOURCE_SH" $force_load
 ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 # ---------------------------------------------------------------
 
@@ -46,13 +49,13 @@ run_dir() {
 
     # Add Dry-Run argument if enabled
     local dry_run_arg=""
-    if [ "$dry_run" -eq 1 ]; then
+    if [ "$dry_run" = "1" ]; then
         dry_run_arg="--dry-run"
     fi
 
     # Determine command for execution
     local exec_cmd=""
-    if [ "$use_source" -eq 1 ]; then
+    if [ "$use_source" = "1" ]; then
         mylog "info" "Using source to execute scripts."
         exec_cmd="source"
     else
@@ -65,7 +68,7 @@ run_dir() {
         local script_name=$(basename "$script")
 
         # Add executable permission if required
-        if [ "$add_permission" -eq 1 ]; then
+        if [ "$add_permission" = "1" ]; then
             mylog "info" "Adding executable permission to: $script_name"
             execute_command "chmod +x $script" "Set executable permission for $script_name" "$dry_run"
         fi
@@ -76,7 +79,7 @@ run_dir() {
 
         # Execute script
         mylog "info" "Executing: $cmd"
-        if [ "$use_source" -eq 1 ] && [ "$continue_on_exit" -eq 1 ]; then
+        if [ "$use_source" = "1" ] && [ "$continue_on_exit" = "1" ]; then
             ($cmd) || {
                 mylog "warn" "Skipped: $script_name due to exit 1"
                 failure_list+=("$script_name")

@@ -1,5 +1,5 @@
 #!/bin/bash
-
+force_load=${1-0}
 # ---------------------------------------------------------------
 # Pre Configuration
 # If the MYACME_LIBS_DIR is not set, set it

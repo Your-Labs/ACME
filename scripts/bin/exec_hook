@@ -1,13 +1,9 @@
-#!/bin/bash
-# ---------------------------------------------------------------
+#!/usr/bin/env bash
+
 # Pre Configuration
 ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 SOURCE_SH="$ROOT/source.sh"
-if [ -f "$SOURCE_SH" ]; then
-    source "$SOURCE_SH"
-else
-    mylog "warn" "Unable to find $SOURCE_SH file. Ignoring source.sh."
-fi
+[[ -f "$SOURCE_SH" ]] && source "$SOURCE_SH" "--force"
 ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 # ---------------------------------------------------------------
 # Default values
@@ -23,6 +19,7 @@ INSTALL_CERT_DIR=""
 INSTALL_CERT_UNIT_NAME=""
 USE_SOURCE=1
 CONTINUE_ON_EXIT=1
+ISSUE_SUCCESS=false
 # ---------------------------------------------------------------
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -70,9 +67,10 @@ done
 # ---------------------------------------------------------------
 # Script Logic
 # ---------------------------------------------------------------
-
+mylog "split"
 if [ -n "$CONFIG_FILE" ] || [ "$CONFIG_FILE" != "-" ]; then
     if [ -f "$CONFIG_FILE" ]; then
+        mylog "info" "Loading the config file: $CONFIG_FILE"
         source "$CONFIG_FILE"
     else
         mylog "warn" "Config file $CONFIG_FILE does not exist. Ignoring the file."
@@ -84,16 +82,23 @@ if [ -z "$MODE" ]; then
     exit 1
 fi
 
+if [ ! -z "$CERT_PATH" ] && [ -f "$CERT_PATH" ]; then
+    ISSUE_SUCCESS=true
+fi
+
 case $MODE in
 pre)
     MESSAGE="Executing scripts before issue"
     RUN_SH_DIR=${RUN_SH_DIR:-$ACME_ISSUE_PRE_HOOK_DIR}
+    PRE_DEFINE_SH_DIR=${PRE_DEFINE_SH_DIR:-$MYACME_PRE_DEFINED_PRE_DIR}
     DISABLE_PRE_DEFINED=${DISABLE_PRE_DEFINED:-$ACME_ISSUE_PRE_HOOK_DIABLE_PRE_DEFINED}
     INSTALL_CERT=0
+
     ;;
 post)
     MESSAGE="Executing scripts after issue"
     RUN_SH_DIR=${RUN_SH_DIR:-$ACME_ISSUE_POST_HOOK_DIR}
+    PRE_DEFINE_SH_DIR=${PRE_DEFINE_SH_DIR:-$MYACME_PRE_DEFINED_POST_DIR}
     DISABLE_PRE_DEFINED=${DISABLE_PRE_DEFINED:-$ACME_ISSUE_POST_HOOK_DIABLE_PRE_DEFINED}
     if [ ! -z "$INSTALL_CERT_DIR" ]; then
         INSTALL_CERT=0
@@ -103,6 +108,7 @@ post)
 renew)
     MESSAGE="Executing scripts after renew"
     RUN_SH_DIR=${RUN_SH_DIR:-$ACME_ISSUE_RENEW_HOOK_DIR}
+    PRE_DEFINE_SH_DIR=${PRE_DEFINE_SH_DIR:-$MYACME_PRE_DEFINED_RENEW_DIR}
     DISABLE_PRE_DEFINED=${DISABLE_PRE_DEFINED:-$ACME_ISSUE_RENEW_HOOK_DIABLE_PRE_DEFINED}
     INSTALL_CERT=0
     ;;
@@ -115,15 +121,18 @@ esac
 DISABLE_PRE_DEFINED=${DISABLE_PRE_DEFINED:-0}
 DRY_RUN=${DRY_RUN:-$ACME_DRY_RUN}
 INSTALL_CERT_UNIT_NAME=${INSTALL_CERT_UNIT_NAME:-$ACME_INSTALL_CERT_UNIT_NAME}
+INSTALL_CERT=${INSTALL_CERT:-$ACME_INSTALL_CERT}
+INSTALL_CERT_DIR=${INSTALL_CERT_DIR:-$ACME_INSTALL_CERT_DIR}
 # ---------------------------------------------------------------
 # infomation
 mylog "split" "====== Initial Configuration for ${MODE} hook ======"
 mylog "info" "Dry Run: $DRY_RUN"
 mylog "info" "Mode: $MODE"
+mylog "info" "Issue Success: $ISSUE_SUCCESS"
 mylog "info" "Add executable permission: $ADD_X_PERSSION"
 mylog "info" "Disable pre-defined scripts: $DISABLE_PRE_DEFINED"
 mylog "info" "Pre-Defined Directory: $PRE_DEFINE_SH_DIR"
-mylog "info" "Post Directory: $RUN_SH_DIR"
+mylog "info" "SH Directory: $RUN_SH_DIR"
 mylog "info" "Config file: $CONFIG_FILE"
 mylog "info" "Install Cert: $INSTALL_CERT"
 mylog "info" "Install Cert Dir: $INSTALL_CERT_DIR"
@@ -132,16 +141,27 @@ mylog "split" "==================================="
 # ---------------------------------------------------------------
 
 # Install the cert after issue
-if [ "$INSTALL_CERT" -eq 1 ] || [ "$INSTALL_CERT" = "true" ]; then
-    source $MYACME_BIN_INSTALL_CERT --config-file $CONFIG_FILE
+if [ "$INSTALL_CERT" = "1" ] || [ "$INSTALL_CERT" = "true" ]; then
+    cmd="$MYACME_BIN_INSTALL_CERT --config-file $CONFIG_FILE"
+    message="Install the cert after issue"
+    execute_command "$cmd" $message $DRY_RUN
 
 fi
-
+mylog "split" "----------------------------------"
 # execute the script in the given directory
-if [ "$DISABLE_PRE_DEFINED" -eq 0 ] || [ "$DISABLE_PRE_DEFINED" = "false" ]; then
+if [ "$DISABLE_PRE_DEFINED" = "0" ] || [ "$DISABLE_PRE_DEFINED" = "false" ]; then
     mylog "info" "[pre-defined] - "$MESSAGE
+    mkdir -p "$PRE_DEFINE_SH_DIR"
     run_dir "$PRE_DEFINE_SH_DIR" $USE_SOURCE $CONTINUE_ON_EXIT $ADD_X_PERSSION $DRY_RUN || true
 fi
 
-mylog "info" "[custom] - "$MESSAGE
-run_dir "$RUN_SH_DIR" $USE_SOURCE $CONTINUE_ON_EXIT $ADD_X_PERSSION $DRY_RUN || true
+mylog "split" "----------------------------------"
+
+if [ -z "$RUN_SH_DIR" ]; then
+    mylog "info" "No script directory is set. Skipping the script execution."
+else
+    mylog "info" "[custom] - "$MESSAGE
+    mkdir -p "$RUN_SH_DIR"
+    run_dir "$RUN_SH_DIR" $USE_SOURCE $CONTINUE_ON_EXIT $ADD_X_PERSSION $DRY_RUN || true
+fi
+mylog "split"

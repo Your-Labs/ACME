@@ -1,11 +1,11 @@
 #!/bin/bash
 
+force_load=${1:-0}
 # ---------------------------------------------------------------
 # check if the file is loaded(source) already
-if [ -n "$_MYACME_ENV_LOADED" ]; then
+if [ -n "$_MYACME_ENV_LOADED" ] && [ "$force_load" != "--force" ]; then
     return 0
 fi
-
 # set the project directory
 ROOT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 # ================================================================
@@ -67,6 +67,8 @@ fi
 # see bin/issue
 # ================================================================
 # ---------------------------------------------------------------
+LIBS_SOURCE_SH="$MYACME_LIBS_DIR/source.sh"
+[[ -f $LIBS_SOURCE_SH ]] && source $LIBS_SOURCE_SH $force_load
 # Mark the file as loaded
 export _MYACME_ENV_LOADED=1
 # ---------------------------------------------------------------

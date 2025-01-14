@@ -44,7 +44,7 @@ if [ -z "$ACME_ISSUE_DOMAINS" ]; then
 fi
 # ------------------------------------------------------------------------------
 # Print information
-mylog "split" "====Initialize the issue.sh===="
+mylog "split" "====Initialize the exec_issue===="
 mylog "info" "ACME_DRY_RUN: $ACME_DRY_RUN"
 mylog "info" "ACME_ISSUE_CONFIG: $ACME_ISSUE_CONFIG"
 mylog "info" "ACME_DEBUG: $ACME_DEBUG"
@@ -68,17 +68,19 @@ mylog "split" "------------------------------------------------------------"
 # ==============================================================================
 
 DRY_RUN_ARG=""
+DRY_RUN_NUM_VALUE=$(bool2num $ACME_DRY_RUN)
 # Dry run args
-if [ "$ACME_DRY_RUN" = "1" ] || [ "$ACME_DRY_RUN" = "true" ]; then
-    mylog "info" "ACME_DRY_RUN is true"
+if [ "$DRY_RUN_NUM_VALUE" = "1" ]; then
     DRY_RUN_ARG="--dry-run"
+
 fi
 
 # Prepare the issue args
 ISSUE_ARGS=""
+ISSUE_DEBUG_ARGS=""
 # check if we need to debug
 if [ "$ACME_DEBUG" = "true" ]; then
-    mylog "info" "ACME_DEBUG is true"
+    ISSUE_DEBUG_ARGS="--debug"
     ISSUE_ARGS=$ISSUE_ARGS" --debug"
 fi
 
@@ -97,7 +99,7 @@ ISSUE_ARGS="--server $ACME_ISSUE_SERVER "$ISSUE_ARGS
 # register the account if the server is zerossl and the email is set
 if [ ! -z "$ACME_CA_MAIL" ]; then
     message="Register the account with with email: $ACME_CA_MAIL on server: $ACME_ISSUE_SERVER"
-    execute_command "acme.sh --register-account --email $ACME_CA_MAIL --server $ACME_ISSUE_SERVER" "$message" $ACME_DRY_RUN
+    # execute_command "acme.sh --register-account --email $ACME_CA_MAIL --server $ACME_ISSUE_SERVER $ISSUE_DEBUG_ARGS" "$message" $DRY_RUN_NUM_VALUE
 fi
 
 # set the issue key length, default is ec-256
@@ -126,7 +128,7 @@ ISSUE_DOMAIN_ARG=$(domains2args $ACME_ISSUE_DOMAINS $ACME_ISSUE_WILDCARD)
 
 # if the dns provider is cloudflare, export the cloudflare environment variables
 if [ "$ACME_DNS_PROVIDER" = 'dns_cf' ]; then
-    mylog "info" "Export the cloudflare environment variables"
+    mylog "info" "The dns provider is cloudflare, export the cloudflare environment variables"
     export_cf_env
 else
     mylog "info" "The dns provider is not cloudflare, run the dns config shell script"
@@ -150,12 +152,15 @@ cmd=(
 )
 
 message="Issue the domain=($ISSUE_DOMAIN_ARG) with args=($ISSUE_ARGS)"
-execute_command cmd "$message" $ACME_DRY_RUN
-# if [ "$ACME_DRY_RUN" = "1" ] || [ "$ACME_DRY_RUN" = "true" ]; then
-#     mylog "info" "[Dry Run] $message: ${cmd[*]}"
-# else
-#     "${cmd[@]}"
-# fi
+if [ "$ACME_DRY_RUN" = "1" ] || [ "$ACME_DRY_RUN" = "true" ]; then
+    mylog "info" "[Dry Run] $message: ${cmd[*]}"
+else
+    mylog "info" "acme.sh --issue $ISSUE_DOMAIN_ARG $ISSUE_ARGS"
+    mylog "info" "--pre-hook: \"$HOOKS_PRE_ARGS\""
+    mylog "info" "--post-hook: \"$HOOKS_POST_ARGS\""
+    mylog "info" "--renew-hook: \"$HOOKS_RENEW_ARGS\""
+    "${cmd[@]}"
+fi
 mylog "split"
 
 # acme.sh --issue -d myladder.top -d "*.myladder.top" --dns dns_cf --debug

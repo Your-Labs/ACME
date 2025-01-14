@@ -3,10 +3,8 @@
 set +e
 [[ "$DEBUG" == 'true' ]] && set -x
 
-SOURCES_FILE="/myacme/sources.sh"
-if [ -f "$SOURCES_FILE" ]; then
-    source $SOURCES_FILE
-fi
+SOURCES_FILE="/myacme/source.sh"
+[[ -f $SOURCES_FILE ]] && source $SOURCES_FILE
 
 
 mylog "split" "============================================================="
