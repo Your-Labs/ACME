@@ -2,7 +2,7 @@
 
 # ---------------------------------------------------------------
 # check if the file is loaded(source) already
-if [ -n "$_MYACME_LIBS_DNS_LOADED" ]; then
+if [ -n "$_MYACME_LIBS_STRING_LOADED" ]; then
     return 0
 fi
 # ---------------------------------------------------------------
