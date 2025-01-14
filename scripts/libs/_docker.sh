@@ -56,7 +56,7 @@ docker_() {
     esac
 
     # Perform the Docker action using curl
-    if [ "$dry_run" -eq 1 ] || [ "$dry_run" == "true" ]; then
+    if [ "$dry_run" = "1" ] || [ "$dry_run" == "true" ]; then
       mylog "info" "[Dry Run] Performing '$action' action on container '$id'..."
       continue
     fi
@@ -102,7 +102,7 @@ docker_exec() {
   for container_id in "${ids[@]}"; do
     mylog "info" "Executing command in container '$container_id'..."
 
-    if [ "$dry_run" -eq 1 ] || [ "$dry_run" == "true" ]; then
+    if [ "$dry_run" = "1" ] || [ "$dry_run" == "true" ]; then
       mylog "info" "[Dry Run] Executing command to container '$container_id': $command"
       continue
     fi

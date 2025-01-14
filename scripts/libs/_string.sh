@@ -38,7 +38,7 @@ comma2space_trim() {
 
     # Loop through each element and trim spaces
     for element in "${elements[@]}"; do
-        if [ "$trim" -eq 1 ]; then
+        if [ "$trim" = "1" ]; then
             # Trim leading and trailing spaces using bash string manipulation
             element="${element#"${element%%[![:space:]]*}"}"
             element="${element%"${element##*[![:space:]]}"}"
@@ -63,7 +63,7 @@ lines2comma() {
     # Read input line by line
     while IFS= read -r line; do
         # Trim whitespace if the flag is enabled
-        if [ "$trim" -eq 1 ]; then
+        if [ "$trim" = "1" ]; then
             line="${line#"${line%%[![:space:]]*}"}" # Remove leading spaces
             line="${line%"${line##*[![:space:]]}"}" # Remove trailing spaces
         fi
