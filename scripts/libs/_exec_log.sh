@@ -1,5 +1,6 @@
 #!/bin/bash
 force_load=${1:-0}
+_is_main=$([[ -z $(caller 0) ]] && echo "true" || echo "false")
 # ---------------------------------------------------------------
 # check if the file is loaded(source) already
 if [ -n "$_MYACME_LIBS_EXEC_LOG_LOADED" ] && [ "$force_load" != "--force" ]; then

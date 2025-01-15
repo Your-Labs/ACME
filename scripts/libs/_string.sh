@@ -1,5 +1,6 @@
 #!/bin/bash
 force_load=${1:-0}
+_is_main=$([[ -z $(caller 0) ]] && echo "true" || echo "false")
 # ---------------------------------------------------------------
 # check if the file is loaded(source) already
 if [ -n "$_MYACME_LIBS_STRING_LOADED" ] && [ "$force_load" != "--force" ]; then
@@ -86,7 +87,6 @@ trim() {
     echo "$str"
 }
 
-
 bool2num() {
     # Convert boolean values to numbers
     # Usage: bool2num <boolean>
@@ -102,7 +102,19 @@ bool2num() {
     esac
 }
 
+# check a string or vaule is true, if yes, return 'true', otherwise return 'false'
+is_true() {
+    local value="${1:-'false'}"
+    local value_str=$(echo "$value" | tr '[:upper:]' '[:lower:]')
+    case "$value_str" in
+    true | yes | on | 1)
+        echo 'true'
+        ;;
+    *) echo 'false' ;;
+    esac
+}
 # ---------------------------------------------------------------
 # Mark the file as loaded
 export _MYACME_LIBS_STRING_LOADED=1
 # ---------------------------------------------------------------
+
