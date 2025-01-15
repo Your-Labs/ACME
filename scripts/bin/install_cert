@@ -127,7 +127,7 @@ CERTS_UNIT_NAME=${CERTS_UNIT_NAME:-$ACME_INSTALL_CERT_UNIT_NAME}
 CERTS_UNIT_NAME=$(is_true "$CERTS_UNIT_NAME")
 DRY_RUN=${DRY_RUN:-$ACME_DRY_RUN}
 ACME_ISSUE_WILDCARD=${ACME_ISSUE_WILDCARD:-"false"}
-_ACME_CERTS_FILE_NAMES=''
+_CERTS_FILE_NAMES=''
 # ---------------------------------------------------------------
 # infomation
 mylog "split" "====== Initial Configuration for install cert ======"
@@ -153,7 +153,7 @@ fi
 if [ "$CERTS_UNIT_NAME" = 'true' ]; then
     message="Installing certificate for $ACME_ISSUE_DOMAINS to $CERTS_INSTALL_DIR"
     _exec_install_cert "$ACME_ISSUE_DOMAINS" "$ACME_ISSUE_WILDCARD" "$CERTS_INSTALL_DIR" "key.pem" "fullchain.pem" "ca.pem" "cert.pem" "$message" $DRY_RUN
-    _ACME_CERTS_FILE_NAMES=$(trim "$_ACME_CERTS_FILE_NAMES")",$_cert_install_dir_path_pre"key.pem",$_cert_install_dir_path_pre"fullchain.pem",$_cert_install_dir_path_pre"ca.pem",$_cert_install_dir_path_pre"cert.pem
+    _CERTS_FILE_NAMES=$(trim "$_CERTS_FILE_NAMES")",$_cert_install_dir_path_pre"key.pem",$_cert_install_dir_path_pre"fullchain.pem",$_cert_install_dir_path_pre"ca.pem",$_cert_install_dir_path_pre"cert.pem
 
 fi
 
@@ -172,12 +172,32 @@ fi
 # install the certificate
 for domain in "${domains[@]}"; do
     message="Installing certificate for $domain to $CERTS_INSTALL_DIR"
-    _exec_install_cert "$ACME_ISSUE_DOMAINS" "$ACME_ISSUE_WILDCARD" "$CERTS_INSTALL_DIR" "$domain.key" "$domain.crt" "" "" "$message" $DRY_RUN
-    _ACME_CERTS_FILE_NAMES=$(trim "$_ACME_CERTS_FILE_NAMES")",$_cert_install_dir_path_pre$domain.key",$_cert_install_dir_path_pre$domain.crt
+    cert_file="$domain.crt"
+    key_file="$domain.key"
+    _exec_install_cert "$ACME_ISSUE_DOMAINS" "$ACME_ISSUE_WILDCARD" "$CERTS_INSTALL_DIR" "$key_file" "$cert_file" "" "" "$message" $DRY_RUN
+    _CERTS_FILE_NAMES=$(trim "$_CERTS_FILE_NAMES")",$_cert_install_dir_path_pre$key_file",$_cert_install_dir_path_pre$cert_file
 done
 
-# export the certificate file names to an environment variable for other scripts
-export ACME_CERTS_FILE_NAMES=$(trim "$_ACME_CERTS_FILE_NAMES")
+
+mylog "split" "----------------------------------------------------"
+[[ "${_CERTS_FILE_NAMES:0:1}" == "," ]] && _CERTS_FILE_NAMES=${_CERTS_FILE_NAMES:1}
+mylog "info" "update the certificate file permissions"
+mylog "info" "Certificate files: $_CERTS_FILE_NAMES"
+if [ -z "$ACME_CERTS_GID" ] && [ -z "$ACME_CERTS_UID" ]; then
+    mylog "info" "ACME_CERTS_GID and ACME_CERTS_UID are not set"
+    mylog "info" "No need to change permissions"
+else
+    chown_files "$ACME_CERTS_UID" "$ACME_CERTS_GID" false "$DRY_RUN" "$_CERTS_FILE_NAMES"
+fi
+
+if [ -z "$ACME_CERTS_PERMISSION" ]; then
+    mylog "info" "ACME_CERTS_PERMISSION is not set"
+    mylog "info" "No need to change permissions"
+else
+    chmod_files "$ACME_CERTS_PERMISSION" false "$DRY_RUN" "$_CERTS_FILE_NAMES"
+fi
+mylog "split" "----------------------------------------------------"
+
 if [ "$RUN_POST_HOOK" = '1' ]; then
     caller_info=$(caller 0)
     if [[ "$caller_info" == *"$MYACME_BIN_EXEC_HOOK"* ]]; then

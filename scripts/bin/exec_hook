@@ -146,7 +146,6 @@ mylog "info" "Config file: $CONFIG_FILE"
 mylog "info" "Install Cert: $INSTALL_CERT"
 mylog "info" "Install Cert Dir: $INSTALL_CERT_DIR"
 mylog "info" "Install Cert Unit Name: $INSTALL_CERT_UNIT_NAME"
-mylog "info" "The certificate files: $ACME_CERTS_FILE_NAMES"
 mylog "split" "------------------------------------------------------"
 # ---------------------------------------------------------------
 
@@ -185,8 +184,5 @@ else
     mylog "split" "----------------------------------"
     run_dir "$RUN_SH_DIR" $USE_SOURCE $CONTINUE_ON_EXIT $ADD_X_PERSSION $DRY_RUN || true
 fi
-
-# Unset some env variables
-export ACME_CERTS_FILE_NAMES=''
 
 mylog "split"

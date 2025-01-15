@@ -32,7 +32,6 @@ declare -A default_values=(
     [ACME_ISSUE_RENEW_HOOK_DIABLE_PRE_DEFINED]="false"
     [ACME_CONTAINER_RESTART]=""
     [ACME_CONTAINER_NGINX_RELOAD]=""
-    [ACME_CERTS_FILE_NAMES]=""
 )
 
 _default_log() {

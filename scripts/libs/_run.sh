@@ -92,7 +92,7 @@ run_dir() {
         mylog "info" "Using eval to execute scripts."
         exec_cmd="bash"
     fi
-
+    mylog "split" "---------------------------------"
     # Execute scripts
     for script in $all_scripts; do
         local script_name=$(basename "$script")
