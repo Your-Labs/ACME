@@ -27,16 +27,16 @@ else
     if [ -z "$ACME_CERTS_GID" ]; then
         mylog "info" "ACME_CERTS_GID is not set"
         mylog "info" "No need to change permissions"
-        ACME_CERTS_GID=$(stat -c %g $ACME_CERTS)
+        ACME_CERTS_GID=$(stat -c %g $ACME_CERTS_DIR)
     fi
     if [ -z "$ACME_CERTS_UID" ]; then
         mylog "info" "ACME_CERTS_UID is not set"
         mylog "info" "No need to change permissions"
-        ACME_CERTS_UID=$(stat -c %u $ACME_CERTS)
+        ACME_CERTS_UID=$(stat -c %u $ACME_CERTS_DIR)
     fi
-    mylog "info" "Changing permissions of "$ACME_CERTS" to $ACME_CERTS_UID:$ACME_CERTS_GID"
-    cmd="chown -R $ACME_CERTS_UID:$ACME_CERTS_GID $ACME_CERTS"
-    execute_command "$cmd" "Set permissions for $ACME_CERTS" "$DRY_RUN"
+    mylog "info" "Changing permissions of "$ACME_CERTS_DIR" to $ACME_CERTS_UID:$ACME_CERTS_GID"
+    cmd="chown -R $ACME_CERTS_UID:$ACME_CERTS_GID $ACME_CERTS_DIR"
+    execute_command "$cmd" "Set permissions for $ACME_CERTS_DIR" "$DRY_RUN"
 fi
 
 if [ -z "$ACME_CERTS_PERMISSION" ]; then
