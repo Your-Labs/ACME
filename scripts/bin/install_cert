@@ -146,22 +146,25 @@ fi
 if [ "$CERTS_UNIT_NAME" = 'true' ] || [ "$CERTS_UNIT_NAME" = "1" ]; then
     message="Installing certificate for $ACME_ISSUE_DOMAINS to $CERTS_INSTALL_DIR"
     _exec_install_cert "$ACME_ISSUE_DOMAINS" "$ACME_ISSUE_WILDCARD" "$CERTS_INSTALL_DIR" "key.pem" "fullchain.pem" "ca.pem" "cert.pem" "$message" $DRY_RUN
-    # acme.sh --install-cert $ISSUE_DOMAIN_ARG \
-    #     --cert-file "$UNIT_FULLCHAIN_FILE" \
-    #     --ca-file "$UNIT_CA_FILE" \
-    #     --key-file "$UNIT_KEY_FILE" \
-    #     --fullchain-file "$UNIT_FULLCHAIN_FILE"
-    # fi
 fi
 
+domains=()
+# Split the domains by comma or space if necessary
+if [[ -n "$ACME_ISSUE_DOMAINS" ]]; then
+    if [[ "${#ACME_ISSUE_DOMAINS[@]}" -eq 1 ]]; then
+        # If single string, split by comma or space
+        IFS=', ' read -r -a domains <<< "${ACME_ISSUE_DOMAINS[0]}"
+    else
+        # If already an array, assign directly
+        domains=("${ACME_ISSUE_DOMAINS[@]}")
+    fi
+fi
+
+
 # install the certificate
-for domain in $ACME_ISSUE_DOMAINS; do
+for domain in "${domains[@]}"; do
     message="Installing certificate for $domain to $CERTS_INSTALL_DIR"
     _exec_install_cert "$ACME_ISSUE_DOMAINS" "$ACME_ISSUE_WILDCARD" "$CERTS_INSTALL_DIR" "$domain.key" "$domain.crt" "" "" "$message" $DRY_RUN
-    # mylog "info" "Installing certificate for $domain"
-    # acme.sh --install-cert $ISSUE_DOMAIN_ARG \
-    #     --key-file "$CERTS_INSTALL_DIR/$domain.key" \
-    #     --fullchain-file "$CERTS_INSTALL_DIR/$domain.crt"
 done
 
 if [ "$RUN_POST_HOOK" = '1' ]; then 
