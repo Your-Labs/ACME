@@ -31,7 +31,7 @@ services:
       ACME_RENEW_HOOK_DIABLE_PRE_DEFINED: false
       # action to container
       ACME_CONTAINER_RESTART: # which container_id to restart, use comma to separate multiple container_id
-      ACME_CONTAINER_RELOAD:  # which container_id of nginx to reload nginx, use comma to separate multiple container_id
+      ACME_CONTAINER_NGINX_RELOAD:  # which container_id of nginx to reload nginx, use comma to separate multiple container_id
       # CERTS permission
       ACME_CERTS_UID: 0
       ACME_CERTS_GID: 1000
