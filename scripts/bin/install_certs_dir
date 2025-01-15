@@ -68,7 +68,7 @@ for config in ${ALL_CONFIGS[@]}; do
         mylog "info" "Skipping $ACME_ISSUE_CONFIG"
         continue
     fi
-    echo "source $MYACME_BIN_INSTALL_CERT --config $ACME_ISSUE_CONFIG $DRY_RUN_ARG $RUN_POST_HOOK_ARG"
+    # echo "source $MYACME_BIN_INSTALL_CERT --config $ACME_ISSUE_CONFIG $DRY_RUN_ARG $RUN_POST_HOOK_ARG"
     source $MYACME_BIN_INSTALL_CERT --config "$ACME_ISSUE_CONFIG" $DRY_RUN_ARG "$RUN_POST_HOOK_ARG" || true
 done
 

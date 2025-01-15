@@ -1,6 +1,5 @@
 #!/bin/bash
-
-# 定义环境变量和默认值
+# define default environment variables
 declare -A default_values=(
     [ACME_ISSUE_ENABLE]="true"
     [ACME_DRY_RUN]="false"
@@ -32,9 +31,10 @@ declare -A default_values=(
     [ACME_ISSUE_RENEW_HOOK_DIABLE_PRE_DEFINED]="false"
     [ACME_CONTAINER_RESTART]=""
     [ACME_CONTAINER_NGINX_RELOAD]=""
+    [ACME_CERTS_FILE_NAMES]=""
 )
 
-# 从当前环境导入默认值
+# set default values to environment and export
 env2default() {
     for key in "${!default_values[@]}"; do
         local env_value
@@ -43,7 +43,7 @@ env2default() {
     done
 }
 
-# 恢复默认值到环境
+# reset environment variables to default values
 default2env() {
     for key in "${!default_values[@]}"; do
         local default_key="${key}_DEFAULT"

@@ -124,8 +124,10 @@ if [ -n "$CONFIG_FILE" ] || [ "$CONFIG_FILE" != "-" ]; then
 fi
 CERTS_INSTALL_DIR=${CERTS_INSTALL_DIR:-$ACME_INSTALL_CERT_DIR}
 CERTS_UNIT_NAME=${CERTS_UNIT_NAME:-$ACME_INSTALL_CERT_UNIT_NAME}
+CERTS_UNIT_NAME=$(is_true "$CERTS_UNIT_NAME")
 DRY_RUN=${DRY_RUN:-$ACME_DRY_RUN}
 ACME_ISSUE_WILDCARD=${ACME_ISSUE_WILDCARD:-"false"}
+_ACME_CERTS_FILE_NAMES=''
 # ---------------------------------------------------------------
 # infomation
 mylog "split" "====== Initial Configuration for install cert ======"
@@ -142,10 +144,18 @@ if [ -z "$ACME_ISSUE_DOMAINS" ]; then
     return 0
 fi
 
+_cert_install_dir_path_pre=$CERTS_INSTALL_DIR
+if [[ "$_cert_install_dir_path_pre" != */ ]]; then
+    _cert_install_dir_path_pre="$_cert_install_dir_path_pre/"
+fi
+
 # handle the unit name
-if [ "$CERTS_UNIT_NAME" = 'true' ] || [ "$CERTS_UNIT_NAME" = "1" ]; then
+if [ "$CERTS_UNIT_NAME" = 'true' ]; then
     message="Installing certificate for $ACME_ISSUE_DOMAINS to $CERTS_INSTALL_DIR"
     _exec_install_cert "$ACME_ISSUE_DOMAINS" "$ACME_ISSUE_WILDCARD" "$CERTS_INSTALL_DIR" "key.pem" "fullchain.pem" "ca.pem" "cert.pem" "$message" $DRY_RUN
+    _ACME_CERTS_FILE_NAMES=$(trim "$_ACME_CERTS_FILE_NAMES")",$_cert_install_dir_path_pre"key.pem",$_cert_install_dir_path_pre"fullchain.pem",$_cert_install_dir_path_pre"ca.pem",$_cert_install_dir_path_pre"cert.pem
+
+
 fi
 
 domains=()
@@ -165,8 +175,11 @@ fi
 for domain in "${domains[@]}"; do
     message="Installing certificate for $domain to $CERTS_INSTALL_DIR"
     _exec_install_cert "$ACME_ISSUE_DOMAINS" "$ACME_ISSUE_WILDCARD" "$CERTS_INSTALL_DIR" "$domain.key" "$domain.crt" "" "" "$message" $DRY_RUN
+    _ACME_CERTS_FILE_NAMES=$(trim "$_ACME_CERTS_FILE_NAMES")",$_cert_install_dir_path_pre$domain.key",$_cert_install_dir_path_pre$domain.crt
 done
 
+# export the certificate file names to an environment variable for other scripts
+export ACME_CERTS_FILE_NAMES=$(trim "$_ACME_CERTS_FILE_NAMES")
 if [ "$RUN_POST_HOOK" = '1' ]; then 
     caller_info=$(caller 0)
     if [[ "$caller_info" == *"$MYACME_BIN_EXEC_HOOK"* ]]; then
