@@ -76,7 +76,8 @@ done
 # MYACME_BIN_INSTALL_CERT will extract the environment variables from the environment
 if [ $NUM -eq 0 ]; then
     mylog "warn" "No scripts found in $CONFIG_DIR"
-    mylog "warn" "You may need to call \"instll_cert\""
+    mylog "info" "Executing $MYACME_BIN_INSTALL_CERT directly and automatically"
+    source $MYACME_BIN_INSTALL_CERT $DRY_RUN_ARG $RUN_POST_HOOK_ARG || true
 fi
 
 default2env
