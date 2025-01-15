@@ -185,7 +185,7 @@ if [ "$RUN_POST_HOOK" = '1' ]; then
         mylog "split"
         return 0
     fi
-    HOOKS_ARGS_GENERAL="$MYACME_BIN_EXEC_HOOK --manual --config-file $ACME_ISSUE_CONFIG --mode post --install-cert false $DRY_RUN_ARG"
+    HOOKS_ARGS_GENERAL="$MYACME_BIN_EXEC_HOOK --manual --mode post --install-cert false $DRY_RUN_ARG"
     if [ -n "$ACME_ISSUE_CONFIG" ] && [ -f "$ACME_ISSUE_CONFIG" ]; then
         HOOKS_ARGS_GENERAL="$HOOKS_ARGS_GENERAL --config-file $ACME_ISSUE_CONFIG"
     fi
