@@ -1,4 +1,5 @@
 #!/bin/bash
+__DEFAULT_ENV_VERBOSE=${__DEFAULT_ENV_VERBOSE:-false}
 # define default environment variables
 declare -A default_values=(
     [ACME_ISSUE_ENABLE]="true"
@@ -34,21 +35,35 @@ declare -A default_values=(
     [ACME_CERTS_FILE_NAMES]=""
 )
 
+_default_log() {
+    local verbose=${1:-$__DEFAULT_ENV_VERBOSE}
+    if [ "$verbose" = "true" ]; then
+        echo "$2"
+    fi
+}
+
 # set default values to environment and export
 env2default() {
+    local verbose=${1:-$__DEFAULT_ENV_VERBOSE}
+    _default_log "$verbose" "Setting default values to environment variables"
     for key in "${!default_values[@]}"; do
         local env_value
         env_value=$(eval echo \$$key)
         export "${key}_DEFAULT=${env_value:-${default_values[$key]}}"
+        _default_log "$verbose" "export ${key}_DEFAULT=${env_value:-${default_values[$key]}}"
     done
 }
 
 # reset environment variables to default values
 default2env() {
+    local verbose=${1:-$__DEFAULT_ENV_VERBOSE}
+    _default_log "$verbose" "Resetting environment variables to default values"
+
     for key in "${!default_values[@]}"; do
         local default_key="${key}_DEFAULT"
         local default_value
         default_value=$(eval echo \$$default_key)
         export "$key=$default_value"
+        _default_log "$verbose" "export $key=$default_value"
     done
 }
