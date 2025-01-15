@@ -147,7 +147,7 @@ mylog "info" "Install Cert: $INSTALL_CERT"
 mylog "info" "Install Cert Dir: $INSTALL_CERT_DIR"
 mylog "info" "Install Cert Unit Name: $INSTALL_CERT_UNIT_NAME"
 mylog "info" "The certificate files: $ACME_CERTS_FILE_NAMES"
-mylog "split" "==================================="
+mylog "split" "------------------------------------------------------"
 # ---------------------------------------------------------------
 
 if [ "$ISSUE_SUCCESS" = "false" ] && [ "$MODE" != "pre" ] && [ "$DRY_RUN" != "1" ]; then
@@ -171,6 +171,7 @@ mylog "split" "----------------------------------"
 if [ "$DISABLE_PRE_DEFINED" = "0" ] || [ "$DISABLE_PRE_DEFINED" = "false" ]; then
     mylog "info" "[pre-defined] - "$MESSAGE
     mkdir -p "$PRE_DEFINE_SH_DIR"
+    mylog "split" "----------------------------------"
     run_dir "$PRE_DEFINE_SH_DIR" $USE_SOURCE $CONTINUE_ON_EXIT $ADD_X_PERSSION $DRY_RUN || true
 fi
 
@@ -181,6 +182,7 @@ if [ -z "$RUN_SH_DIR" ]; then
 else
     mylog "info" "[custom] - "$MESSAGE
     mkdir -p "$RUN_SH_DIR"
+    mylog "split" "----------------------------------"
     run_dir "$RUN_SH_DIR" $USE_SOURCE $CONTINUE_ON_EXIT $ADD_X_PERSSION $DRY_RUN || true
 fi
 
