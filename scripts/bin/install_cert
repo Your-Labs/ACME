@@ -175,7 +175,7 @@ if [ "$RUN_POST_HOOK" = '1' ]; then
         return 0
     fi
 
-    HOOKS_ARGS_GENERAL="$MYACME_BIN_EXEC_HOOK --config-file $ACME_ISSUE_CONFIG --mode post --install-cert false $DRY_RUN_ARG"
+    HOOKS_ARGS_GENERAL="$MYACME_BIN_EXEC_HOOK --manual --config-file $ACME_ISSUE_CONFIG --mode post --install-cert false $DRY_RUN_ARG"
     message="Executing post hook after installing cert. To avoid recursive install cert, the post hook will not install cert again."
     execute_command "$HOOKS_ARGS_GENERAL" "$message" $DRY_RUN
 fi

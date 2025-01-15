@@ -61,7 +61,7 @@ while [[ $# -gt 0 ]]; do
         INSTALL_CERT_UNIT_NAME=true
         shift 2
         ;;
-    --manual-run | manual)
+    --manual-run | --manual)
         MANUAL_RUN=true
         shift
         ;;
