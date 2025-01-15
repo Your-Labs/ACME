@@ -18,7 +18,14 @@ fi
 mylog "split" "-------------------------------------------------------------"
 mylog "info" "Start issuing the certificate"
 source $MYACME_BIN_ISSUE
+mylog "info" "Finish issuing the certificate"
 mylog "split" "-------------------------------------------------------------"
+if [ "$ACME_STARTUP_INSTALL_CERT" = 'true' ]; then
+    mylog "info" "Start installing the certificate"
+    source $MYACME_BIN_INSTALL_CERTS_DIR --config $MYACME_ISSUES_CONFIG_DIR --run-post-hook
+    mylog "split" "-------------------------------------------------------------"
+fi
+
 echo "> Start at : $(date)"
 echo "> crond -n -s -m off"
 mylog "split" "-------------------------------------------------------------"

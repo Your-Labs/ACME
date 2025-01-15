@@ -94,6 +94,7 @@ ACME_CA_MAIL="admin@example.com"
 | `CF_Zone_ID_FILE`             | File path to the Cloudflare zone ID secret. If the file does not exist, falls back to environment.         |                   | Yes (if DNS) | `/secrets/cloudflare_zone_id`    |
 | `ACME_CONTAINER_RESTART`      | Restart containers after certificate issuance (comma-separated list of names).                             |                   | No           | `nginx,web`                      |
 | `ACME_CONTAINER_NGINX_RELOAD` | Reload the specified NGINX container after certificate issuance. Requires the container ID.                |                   | No           | `nginx-container-id`             |
+| `ACME_STARTUP_INSTALL_CERT` | Install the certs whil the container startup                |       `false`            | No           | `true`             |
 
 ---
 
