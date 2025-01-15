@@ -15,4 +15,4 @@ if [ -z "$ACME_CONTAINER_RESTART" ]; then
     exit 0
 fi
 # call the docker_ function to restart the container
-docker_ $RESTART_CONTAINER_ID "restart" "$MYACME_DOCKER_SOCKET" $ACME_DRY_RUN
+docker_ "restart" $RESTART_CONTAINER_ID "$MYACME_DOCKER_SOCKET" $ACME_DRY_RUN

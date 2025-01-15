@@ -65,15 +65,15 @@ docker_() {
     fi
     mylog "info" "Performing '$action' action on container '$id'..."
     # Perform the Docker action using curl
-    response=$(curl --silent --write-out "%{http_code}" --output /dev/null --unix-socket "$DOCKER_HOST" \
-      -X POST "http://localhost/containers/$id/$ACTION")
+    response=$(curl --silent --write-out "%{http_code}" --output /dev/null --unix-socket "$docker_sock" \
+      -X POST "http://localhost/containers/$id/$action")
 
     # Check the response status code
-    if [ "$response" -eq 204 ]; then
+    if [ "$response" = "204" ]; then
       mylog "info" "Success: $action action performed on container '$id'."
-    elif [ "$response" -eq 404 ]; then
+    elif [ "$response" = "404" ]; then
       mylog "error" "Error: Container '$id' not found."
-    elif [ "$response" -eq 409 ]; then
+    elif [ "$response" = "409" ]; then
       mylog "error" "Error: Conflict while performing '$action' on container '$id' (e.g., already stopped)."
     else
       mylog "error" "Error: Failed to perform '$action' on container '$id'. HTTP status code: $response"
