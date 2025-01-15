@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ${ACME_CONTAINER_NAME:-acme}
+    container_name: ${ACME_CONTAINER_NAME:-acme}-dev
     hostname: ${ACME_HOSTNAME:-acme}
     restart: always
     environment:
