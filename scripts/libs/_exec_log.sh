@@ -15,6 +15,7 @@ if [ -z "$MYACME_LIBS_DIR" ]; then
   readonly MYACME_LIBS_DIR
 fi
 ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+_is_main=$([[ -z $(caller 0) ]] && echo "true" || echo "false")
 # ---------------------------------------------------------------
 # Color Definitions
 # ---------------------------------------------------------------

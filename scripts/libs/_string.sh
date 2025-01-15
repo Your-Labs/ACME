@@ -18,6 +18,7 @@ fi
 EXEC_LOG_SOURCE_SH="$MYACME_LIBS_DIR/_exec_log.sh"
 [[ -f "$EXEC_LOG_SOURCE_SH" ]] && source "$EXEC_LOG_SOURCE_SH" $force_load
 ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+_is_main=$([[ -z $(caller 0) ]] && echo "true" || echo "false")
 # ---------------------------------------------------------------
 # FUNCTIONS
 # ---------------------------------------------------------------
