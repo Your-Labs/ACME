@@ -6,7 +6,7 @@ SOURCE_SH="$ROOT/source.sh"
 [[ -f "$SOURCE_SH" ]] && source "$SOURCE_SH"
 ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 # ---------------------------------------------------------------
-ACME_CONTAINER_RESTART=${ACME_CONTAINER_RESTART:-}
+RESTART_CONTAINER_ID=${ACME_CONTAINER_RESTART:-}
 ACME_DRY_RUN=${ACME_DRY_RUN:-0}
 # ---------------------------------------------------------------
 # Check if RESTART_CONTAINER_ID is set

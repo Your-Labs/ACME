@@ -46,7 +46,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${ACME_BASE_DIR:-.}/acme.sh:/acme.sh
       - ${ACME_CERTS_DIR:-./certs}:/certs
-      - ./scripts:/myacme.sh
+      - ./scripts:/myacme
     secrets:
       - CF_Account_ID
       - KYZDT_CF_Token

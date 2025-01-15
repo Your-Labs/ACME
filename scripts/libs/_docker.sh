@@ -3,7 +3,7 @@ force_load=${1:-0}
 # ---------------------------------------------------------------
 # check if the file is loaded(source) already
 if [ -n "$_MYACME_LIBS_DOCKER_LOADED" ] && [ "$force_load" != "--force" ]; then
-    return 0
+  return 0
 fi
 # ---------------------------------------------------------------
 # Pre Configuration
@@ -38,7 +38,8 @@ docker_() {
 
   # Validate inputs
   if [ -z "$container_id" ] || [ -z "$action" ]; then
-    echo "Error: Missing container ID or action."
+    mylog "error" "Missing container ID or action."
+    mylog "error" "Usage: docker_ <action> <container_id>"
     docker-helper
     return 1
   fi
@@ -121,7 +122,7 @@ docker_exec() {
 
     # Check if exec ID was created successfully
     if [ -z "$exec_id" ] || [ "$exec_id" == "null" ]; then
-      echo "Error: Failed to create exec instance for container '$container_id'."
+      mylog "error" "Error: Failed to create exec instance for container '$container_id'."
       continue
     fi
 
@@ -136,11 +137,17 @@ docker_exec() {
 
     # Check if the command executed successfully
     if [ -n "$response" ]; then
-      echo "Output from container '$container_id':"
-      echo "$response"
+      mylog "error" "Error: Failed to execute command in container '$container_id'."
+      level="error"
+
     else
-      echo "Error: Failed to execute command in container '$container_id'."
+      mylog "success" "Command executed successfully in container '$container_id'."
+      level="success"
     fi
+    mylog "$level" "Container ID: $container_id"
+    mylog "$level" "Exec ID: $exec_id"
+    mylog "$level" "Command: $command"
+    mylog "$level" "Response: $response"
   done
 }
 
