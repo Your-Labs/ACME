@@ -41,3 +41,16 @@ build_branch:
         - scripts/**
         - scripts/**/*
         - Dockerfile
+
+build_dev:
+  stage: build
+  script:
+    - VERSION="dev"
+    - docker build -t $DOCKER_IMAGE_NAME:$VERSION .
+    - docker push $DOCKER_IMAGE_NAME:$VERSION
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"  # 仅在 dev 分支构建时运行
+      changes:
+        - scripts/**
+        - scripts/**/*
+        - Dockerfile

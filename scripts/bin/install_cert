@@ -1,0 +1,217 @@
+#!/bin/bash
+# ---------------------------------------------------------------
+# Pre Configuration
+ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+SOURCE_SH="$ROOT/source.sh"
+[[ -f "$SOURCE_SH" ]] && source "$SOURCE_SH" "--force"
+ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+# ---------------------------------------------------------------
+_exec_install_cert() {
+    local domains=$1
+    local wildcard=${2:-"false"}
+    local cert_dir=${3:-""}
+    local key_file=${4:-""}
+    local fullchain_file=${5:-""}
+    local ca_file=${6:-""}
+    local cert_file=${7:-""}
+    local message=${8:-""}
+    local dry_run=${9:-0}
+
+    local install_args=""
+    local files=""
+    local path_pre=""
+    local file_full_path=""
+
+    if [ -n "$cert_dir" ]; then
+        path_pre="$cert_dir"
+        if [ ! -d "$cert_dir" ]; then
+            message="Creating the directory: $cert_dir"
+            cmd="mkdir -p \"$cert_dir\""
+            execute_command "$cmd" "$message" $dry_run
+        fi
+        if [[ "$path_pre" != */ ]]; then
+            path_pre="$path_pre/"
+        fi
+    fi
+
+    if [ -n "$key_file" ]; then
+        file_full_path="$path_pre$key_file"
+        install_args="$install_args --key-file \"$file_full_path\""
+        files="$files $file_full_path"
+    fi
+
+    if [ -n "$cert_file" ]; then
+        file_full_path="$path_pre$cert_file"
+        install_args="$install_args --cert-file \"$file_full_path\""
+        files="$files $file_full_path"
+    fi
+
+    if [ -n "$fullchain_file" ]; then
+        file_full_path="$path_pre$fullchain_file"
+        install_args="$install_args --fullchain-file \"$file_full_path\""
+        files="$files $file_full_path"
+    fi
+
+    if [ -n "$ca_file" ]; then
+        file_full_path="$path_pre$ca_file"
+        install_args="$install_args --ca-file \"$file_full_path\""
+        files="$files $file_full_path"
+    fi
+
+    files=$(trim "$files")
+    for file in $files; do
+        if [ -f "$file" ]; then
+            message="Removing the existing certificate file: $file"
+            cmd="rm -f \"$file\""
+            execute_command "$cmd" "$message" $dry_run
+        fi
+    done
+
+    if [ -z "$message" ]; then
+        message="Installing certificate for $domains to files: $files"
+    fi
+
+    local domain_args=$(domains2args "$domains" $wildcard)
+    local cmd="acme.sh --install-cert $domain_args $install_args"
+    execute_command "$cmd" "$message" $dry_run
+}
+# ---------------------------------------------------------------
+# Default values
+CERTS_INSTALL_DIR=""
+CERTS_UNIT_NAME=""
+CONFIG_FILE=""
+RUN_POST_HOOK='0'
+DRY_RUN_ARG=''
+# ---------------------------------------------------------------
+# Parse command-line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+    --dry-run)
+        DRY_RUN=1
+        DRY_RUN_ARG='--dry-run'
+        shift
+        ;;
+    -d | --dir)
+        CERTS_INSTALL_DIR=$2
+        shift 2
+        ;;
+    -u | --unit)
+        CERTS_UNIT_NAME=true
+        shift 1
+        ;;
+    --config-file | --config | -c)
+        CONFIG_FILE=$2
+        shift 2
+        ;;
+    --run-post-hook)
+        RUN_POST_HOOK='1'
+        shift
+        ;;
+    *)
+        mylog "error" "Unknown option: $1, ignoring the option."
+        shift
+        # help
+        ;;
+    esac
+done
+# ---------------------------------------------------------------
+if [ -n "$CONFIG_FILE" ] || [ "$CONFIG_FILE" != "-" ]; then
+    if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
+    else
+        mylog "warn" "Config file $CONFIG_FILE does not exist. Ignoring the file."
+    fi
+fi
+CERTS_INSTALL_DIR=${CERTS_INSTALL_DIR:-$ACME_INSTALL_CERT_DIR}
+CERTS_UNIT_NAME=${CERTS_UNIT_NAME:-$ACME_INSTALL_CERT_UNIT_NAME}
+CERTS_UNIT_NAME=$(is_true "$CERTS_UNIT_NAME")
+DRY_RUN=${DRY_RUN:-$ACME_DRY_RUN}
+ACME_ISSUE_WILDCARD=${ACME_ISSUE_WILDCARD:-"false"}
+_CERTS_FILE_NAMES=''
+# ---------------------------------------------------------------
+# infomation
+mylog "split" "====== Initial Configuration for install cert ======"
+mylog "info" "Dry Run: $DRY_RUN"
+mylog "info" "Config file: $CONFIG_FILE"
+mylog "info" "Install Cert Dir: $CERTS_INSTALL_DIR"
+mylog "info" "Install Cert Unit Name: $CERTS_UNIT_NAME" "(which means install the certificate to the unit name, fullchain.pem, key.pem, cert.pem, ca.pem)"
+mylog "split" "----------------------------------------------------"
+# ---------------------------------------------------------------
+
+if [ -z "$ACME_ISSUE_DOMAINS" ]; then
+    mylog "error" "ACME_ISSUE_DOMAINS is not set. Please set the domain to issue."
+    mylog "split"
+    return 0
+fi
+
+_cert_install_dir_path_pre=$CERTS_INSTALL_DIR
+if [[ "$_cert_install_dir_path_pre" != */ ]]; then
+    _cert_install_dir_path_pre="$_cert_install_dir_path_pre/"
+fi
+
+# handle the unit name
+if [ "$CERTS_UNIT_NAME" = 'true' ]; then
+    message="Installing certificate for $ACME_ISSUE_DOMAINS to $CERTS_INSTALL_DIR"
+    _exec_install_cert "$ACME_ISSUE_DOMAINS" "$ACME_ISSUE_WILDCARD" "$CERTS_INSTALL_DIR" "key.pem" "fullchain.pem" "ca.pem" "cert.pem" "$message" $DRY_RUN
+    _CERTS_FILE_NAMES=$(trim "$_CERTS_FILE_NAMES")",$_cert_install_dir_path_pre"key.pem",$_cert_install_dir_path_pre"fullchain.pem",$_cert_install_dir_path_pre"ca.pem",$_cert_install_dir_path_pre"cert.pem
+
+fi
+
+domains=()
+# Split the domains by comma or space if necessary
+if [[ -n "$ACME_ISSUE_DOMAINS" ]]; then
+    if [[ "${#ACME_ISSUE_DOMAINS[@]}" -eq 1 ]]; then
+        # If single string, split by comma or space
+        IFS=', ' read -r -a domains <<<"${ACME_ISSUE_DOMAINS[0]}"
+    else
+        # If already an array, assign directly
+        domains=("${ACME_ISSUE_DOMAINS[@]}")
+    fi
+fi
+
+# install the certificate
+for domain in "${domains[@]}"; do
+    message="Installing certificate for $domain to $CERTS_INSTALL_DIR"
+    cert_file="$domain.crt"
+    key_file="$domain.key"
+    _exec_install_cert "$ACME_ISSUE_DOMAINS" "$ACME_ISSUE_WILDCARD" "$CERTS_INSTALL_DIR" "$key_file" "$cert_file" "" "" "$message" $DRY_RUN
+    _CERTS_FILE_NAMES=$(trim "$_CERTS_FILE_NAMES")",$_cert_install_dir_path_pre$key_file",$_cert_install_dir_path_pre$cert_file
+done
+
+
+mylog "split" "----------------------------------------------------"
+[[ "${_CERTS_FILE_NAMES:0:1}" == "," ]] && _CERTS_FILE_NAMES=${_CERTS_FILE_NAMES:1}
+mylog "info" "update the certificate file permissions"
+mylog "info" "Certificate files: $_CERTS_FILE_NAMES"
+if [ -z "$ACME_CERTS_GID" ] && [ -z "$ACME_CERTS_UID" ]; then
+    mylog "info" "ACME_CERTS_GID and ACME_CERTS_UID are not set"
+    mylog "info" "No need to change permissions"
+else
+    chown_files "$ACME_CERTS_UID" "$ACME_CERTS_GID" false "$DRY_RUN" "$_CERTS_FILE_NAMES"
+fi
+
+if [ -z "$ACME_CERTS_PERMISSION" ]; then
+    mylog "info" "ACME_CERTS_PERMISSION is not set"
+    mylog "info" "No need to change permissions"
+else
+    chmod_files "$ACME_CERTS_PERMISSION" false "$DRY_RUN" "$_CERTS_FILE_NAMES"
+fi
+mylog "split" "----------------------------------------------------"
+
+if [ "$RUN_POST_HOOK" = '1' ]; then
+    caller_info=$(caller 0)
+    if [[ "$caller_info" == *"$MYACME_BIN_EXEC_HOOK"* ]]; then
+        mylog "warn" "It recursively calls the post hook. Ignoring the post hook and skipping..."
+        mylog "split"
+        return 0
+    fi
+    HOOKS_ARGS_GENERAL="$MYACME_BIN_EXEC_HOOK --manual --mode post --install-cert false $DRY_RUN_ARG"
+    if [ -n "$ACME_ISSUE_CONFIG" ] && [ -f "$ACME_ISSUE_CONFIG" ]; then
+        HOOKS_ARGS_GENERAL="$HOOKS_ARGS_GENERAL --config-file $ACME_ISSUE_CONFIG"
+    fi
+    message="Executing post hook after installing cert. To avoid recursive install cert, the post hook will not install cert again."
+    execute_command "$HOOKS_ARGS_GENERAL" "$message" $DRY_RUN
+fi
+
+mylog "info" "Certificate installed to $CERTS_INSTALL_DIR"
+mylog "split"
