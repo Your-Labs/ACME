@@ -20,6 +20,7 @@ INSTALL_CERT_UNIT_NAME=""
 USE_SOURCE=1
 CONTINUE_ON_EXIT=1
 ISSUE_SUCCESS=false
+MANUAL_RUN=false
 # ---------------------------------------------------------------
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -59,6 +60,10 @@ while [[ $# -gt 0 ]]; do
     --install-cert-unit)
         INSTALL_CERT_UNIT_NAME=true
         shift 2
+        ;;
+    --manual-run | manual)
+        MANUAL_RUN=true
+        shift
         ;;
     *)
         mylog "error" "Unknown option: $1"
@@ -130,6 +135,7 @@ INSTALL_CERT_DIR=${INSTALL_CERT_DIR:-$ACME_INSTALL_CERT_DIR}
 # infomation
 mylog "split" "====== Initial Configuration for ${MODE} hook ======"
 mylog "info" "Dry Run: $DRY_RUN"
+mylog "info" "Manual Run: $MANUAL_RUN"
 mylog "info" "Mode: $MODE"
 mylog "info" "Issue Success: $ISSUE_SUCCESS"
 mylog "info" "Add executable permission: $ADD_X_PERSSION"
@@ -144,8 +150,12 @@ mylog "split" "==================================="
 # ---------------------------------------------------------------
 
 if [ "$ISSUE_SUCCESS" = "false" ] && [ "$MODE" != "pre" ] && [ "$DRY_RUN" != "1" ]; then
-    mylog "warn" "Issue is not successful. Skipping the ${MODE} hook."
-    exit 0
+    if [ "$MANUAL_RUN" = "true" ]; then
+        mylog "warn" "Issue is not successful. But, Manual run is enabled. Still, running the ${MODE} hook."
+    else
+        mylog "warn" "Issue is not successful. Skipping the ${MODE} hook."
+        exit 0
+    fi
 fi
 
 # Install the cert after issue
