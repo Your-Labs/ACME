@@ -9,7 +9,7 @@ ROOT=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 ACME_CERTS_PREMISSIONS=${ACME_CERTS_PREMISSIONS:-}
 ACME_CERTS_UID=${ACME_CERTS_UID:-}
 ACME_CERTS_GID=${ACME_CERTS_GID:-}
-ACME_CERTS_DIR=${ACME_CERTS_DIR:-}
+ACME_CERTS_DIR=${ACME_CERTS_DIR:-$ACME_INSTALL_CERT_DIR}
 ACME_DRY_RUN=${ACME_DRY_RUN:-0}
 
 # ---------------------------------------------------------------
