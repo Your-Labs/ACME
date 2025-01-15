@@ -8,6 +8,7 @@ services:
     restart: always
     environment:
       # DEBUG: false
+      ACME_STARTUP_INSTALL_CERT: true
       ACME_ISSUE_ENABLE: true
       ACME_ISSUE_DOMAINS: example.com abcd.example.com
       ACME_ISSUE_WILDCARD: false
@@ -47,6 +48,7 @@ services:
       - ${ACME_BASE_DIR:-.}/acme.sh:/acme.sh
       - ${ACME_CERTS_DIR:-./certs}:/certs
       - ./scripts:/myacme
+      - ./scripts/entrypoint.sh:/entrypoint.sh
     secrets:
       - CF_Account_ID
       - KYZDT_CF_Token
