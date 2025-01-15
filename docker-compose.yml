@@ -31,26 +31,20 @@ services:
       ACME_RENEW_HOOK_DIABLE_PRE_DEFINED: false
       # action to container
       ACME_CONTAINER_RESTART: # which container_id to restart, use comma to separate multiple container_id
-      ACME_CONTAINER_RELOAD:
-        # which container_id of nginx to reload nginx, use comma to separate multiple container_id
-        # CERTS permission
-
+      ACME_CONTAINER_RELOAD:  # which container_id of nginx to reload nginx, use comma to separate multiple container_id
+      # CERTS permission
       ACME_CERTS_UID: 0
       ACME_CERTS_GID: 1000
-      ACME_CERTS_PREMISSIONS: 640 # DNS config
-
+      ACME_CERTS_PREMISSIONS: 640 
+      # DNS config
       CF_Account_ID_FILE: /run/secrets/CF_Account_ID
       # CF_Token_FILE: /run/secrets/CF_Token
       # CF_Zone_ID_FILE: /run/secrets/CF_Zone_ID
-      DEBUG: false
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${ACME_BASE_DIR:-.}/acme.sh:/acme.sh
-      # - ${ACME_BASE_DIR:-.}/issues:/myacme/issues
-      - ./scripts:/myacme
-      - ./scripts/entrypoint.sh:/entrypoint.sh
       - ${ACME_CERTS_DIR:-./certs}:/certs
     secrets:
       - CF_Account_ID
