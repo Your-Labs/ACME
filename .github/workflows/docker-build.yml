@@ -43,6 +43,7 @@ jobs:
           else
             export IMAGE_VERSION=nightly
             export DOCKER_IMAGE_NAME_NIGHTLY="${{ env.CI_REGISTRY_IMAGE }}:nightly"
+          fi
           echo "IMAGE_VERSION=${IMAGE_VERSION}" >> $GITHUB_ENV
           echo "DOCKER_IMAGE_NAME_LATEST=${DOCKER_IMAGE_NAME_LATEST}" >> $GITHUB_ENV
           echo "DOCKER_IMAGE_NAME_VERSION=${DOCKER_IMAGE_NAME_VERSION}" >> $GITHUB_ENV
