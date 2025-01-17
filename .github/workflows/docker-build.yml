@@ -19,6 +19,7 @@ jobs:
       DOCKER_DRIVER: overlay2
       DOCKER_TLS_CERTDIR: ""
       CI_REGISTRY_IMAGE: ghcr.io/your-labs/acme
+      PLATFORMS: linux/amd64,linux/arm64,linux/arm/v7
 
     steps:
       - name: Checkout repository
@@ -57,14 +58,14 @@ jobs:
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
             docker buildx build \
               --build-arg VERSION=${IMAGE_VERSION} \
-              --platform linux/amd64 \
+              --platform ${PLATFORMS} \
               -t ${DOCKER_IMAGE_NAME_LATEST} \
               -t ${DOCKER_IMAGE_NAME_VERSION} \
               --push .
           else
             docker buildx build \
               --build-arg VERSION=${IMAGE_VERSION} \
-              --platform linux/amd64 \
+              --platform ${PLATFORMS} \
               -t ${DOCKER_IMAGE_NAME_NIGHTLY} \
               --push .
           fi
