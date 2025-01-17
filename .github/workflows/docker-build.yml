@@ -36,7 +36,7 @@ jobs:
 
       - name: Set Docker Image Variables
         run: |
-          if [ "${{ github.event_name }}" = "create" ]; then
+          if [ "${GITHUB_EVENT_NAME}" = "create" ]; then
             export IMAGE_VERSION=${{ github.ref_name }}
             export DOCKER_IMAGE_NAME_LATEST="${{ env.CI_REGISTRY_IMAGE }}:latest"
             export DOCKER_IMAGE_NAME_VERSION="${{ env.CI_REGISTRY_IMAGE }}:${{ github.ref_name }}"
@@ -44,16 +44,17 @@ jobs:
             export IMAGE_VERSION=nightly
             export DOCKER_IMAGE_NAME_NIGHTLY="${{ env.CI_REGISTRY_IMAGE }}:nightly"
           fi
+
           echo "IMAGE_VERSION=${IMAGE_VERSION}" >> $GITHUB_ENV
           echo "DOCKER_IMAGE_NAME_LATEST=${DOCKER_IMAGE_NAME_LATEST}" >> $GITHUB_ENV
           echo "DOCKER_IMAGE_NAME_VERSION=${DOCKER_IMAGE_NAME_VERSION}" >> $GITHUB_ENV
           echo "DOCKER_IMAGE_NAME_NIGHTLY=${DOCKER_IMAGE_NAME_NIGHTLY}" >> $GITHUB_ENV
 
       - name: Build and Push Docker Image
-        if: ${{ github.event_name == 'push' || github.event_name == 'create' || github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'create' }}
         run: |
           docker buildx create --use
-          if [ "${{ github.event_name }}" = "create" ]; then
+          if [ "${GITHUB_EVENT_NAME}" = "create" ]; then
             docker buildx build \
               --build-arg VERSION=${IMAGE_VERSION} \
               --platform linux/amd64 \
