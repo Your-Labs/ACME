@@ -50,7 +50,7 @@ jobs:
           echo "DOCKER_IMAGE_NAME_NIGHTLY=${DOCKER_IMAGE_NAME_NIGHTLY}" >> $GITHUB_ENV
 
       - name: Build and Push Docker Image
-        if: ${{ github.event_name == 'push' || github.event_name == 'create' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'create' || github.event_name == 'workflow_dispatch' }}
         run: |
           docker buildx create --use
           if [ "${{ github.event_name }}" = "create" ]; then
