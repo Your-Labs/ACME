@@ -65,3 +65,4 @@ jobs:
               --platform linux/amd64 \
               -t ${DOCKER_IMAGE_NAME_NIGHTLY} \
               --push .
+          fi
