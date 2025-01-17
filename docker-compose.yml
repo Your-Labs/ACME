@@ -51,36 +51,15 @@ services:
       - ./scripts/entrypoint.sh:/entrypoint.sh
     secrets:
       - CF_Account_ID
-      - KYZDT_CF_Token
-      - KYZDT_CF_Zone_ID
-      - KYZDT_DEV_CF_Token
-      - KYZDT_DEV_CF_Zone_ID
-      - KYZDT_NET_CF_Token
-      - KYZDT_NET_CF_Zone_ID
-      - KYZDT_ORG_CF_Token
-      - KYZDT_ORG_CF_Zone_ID
+      - CF_Token
+      - CF_Zone_ID
+
       
 
 secrets:
   CF_Account_ID:
-    file: /home/docker/000-proxy/secrets/CF_Account_ID
-
-  KYZDT_CF_Token:
-    file: /home/docker/000-proxy/secrets/KYZDT_CF_Token
-  KYZDT_CF_Zone_ID:
-    file: /home/docker/000-proxy/secrets/KYZDT_CF_Zone_ID
-
-  KYZDT_ORG_CF_Token:
-    file: /home/docker/000-proxy/secrets/KYZDT_ORG_CF_Token
-  KYZDT_ORG_CF_Zone_ID:
-    file: /home/docker/000-proxy/secrets/KYZDT_ORG_CF_Zone_ID
-
-  KYZDT_NET_CF_Token:
-    file: /home/docker/000-proxy/secrets/KYZDT_NET_CF_Token
-  KYZDT_NET_CF_Zone_ID:
-    file: /home/docker/000-proxy/secrets/KYZDT_NET_CF_Zone_ID
-
-  KYZDT_DEV_CF_Token:
-    file: /home/docker/000-proxy/secrets/KYZDT_DEV_CF_Token
-  KYZDT_DEV_CF_Zone_ID:
-    file: /home/docker/000-proxy/secrets/KYZDT_DEV_CF_Zone_ID
+    file: ./secrets/CF_Account_ID
+  CF_Token:
+    file: ./secrets/KYZDT_CF_Token
+  CF_Zone_ID:
+    file: ./secrets/KYZDT_CF_Zone_ID
